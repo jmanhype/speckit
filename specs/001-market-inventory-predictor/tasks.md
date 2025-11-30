@@ -464,11 +464,11 @@ Per plan.md: Web application structure
 
 ### Graceful Degradation (Constitution §VII)
 
-- [ ] (speckit-mw9.5) T168 [P] Implement Square API failure fallback to cached data (max 24h old) in backend/src/services/square_service.py
-- [ ] (speckit-mw9.6) T169 [P] Implement Weather API failure fallback to historical average in backend/src/services/weather_service.py
-- [ ] (speckit-mw9.7) T170 [P] Implement Events API failure graceful skip in backend/src/services/event_service.py
-- [ ] (speckit-mw9.8) T171 [P] Implement prediction engine failure fallback to rule-based heuristics in backend/src/services/prediction_service.py
-- [ ] (speckit-mw9.9) T172 [P] Implement Redis failure fallback to in-memory cache in backend/src/services/cache_service.py
+- [X] (speckit-mw9.5) T168 [P] Implement Square API failure fallback to cached data (max 24h old) in backend/src/services/square_sync.py
+- [X] (speckit-mw9.6) T169 [P] Implement Weather API failure fallback to historical average in backend/src/services/weather.py
+- [X] (speckit-mw9.7) T170 [P] Implement Events API failure graceful skip in backend/src/services/events.py
+- [X] (speckit-mw9.8) T171 [P] Implement prediction engine failure fallback to rule-based heuristics in backend/src/services/ml_recommendations.py
+- [X] (speckit-mw9.9) T172 [P] Implement Redis failure fallback to in-memory cache (handled in all services with Redis)
 
 ### Production Readiness
 
