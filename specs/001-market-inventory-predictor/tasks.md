@@ -385,14 +385,14 @@ Per plan.md: Web application structure
 
 ### Feedback Loop
 
-- [ ] (speckit-mw9.164) T137 [P] Write integration tests for feedback submission in backend/tests/integration/test_feedback.py
+- [X] (speckit-mw9.164) T137 [P] Write integration tests for feedback submission in backend/tests/integration/test_feedback.py
 - [X] (speckit-mw9.165) T138 Implement POST /feedback endpoint in backend/src/routers/feedback.py
 - [X] (speckit-mw9.166) T139 Implement model retraining with feedback in backend/src/services/model_training.py
 - [X] (speckit-mw9.167) T140 [P] Create feedback form component in frontend/src/components/features/feedback/FeedbackForm.tsx
 
 ### Subscription & Billing
 
-- [ ] (speckit-mw9.168) T141 [P] Write contract tests for Stripe integration in backend/tests/contract/test_stripe.py
+- [X] (speckit-mw9.168) T141 [P] Write contract tests for Stripe integration in backend/tests/contract/test_stripe.py
 - [X] (speckit-mw9.169) T142 Implement Stripe adapter in backend/src/services/stripe_service.py
 - [X] (speckit-mw9.170) T143 Implement billing service in backend/src/services/stripe_service.py
 - [X] (speckit-mw9.171) T144 Implement subscription tier enforcement in backend/src/middleware/subscription.py
@@ -414,7 +414,7 @@ Per plan.md: Web application structure
 
 ### Compliance & Audit Trail (Constitution §IV)
 
-- [ ] (speckit-mw9.195) T180 [P] Write unit tests for audit log service in backend/tests/unit/test_audit_service.py
+- [X] (speckit-mw9.195) T180 [P] Write unit tests for audit log service in backend/tests/unit/test_audit_service.py
 - [X] (speckit-mw9.196) T181 [P] Implement immutable audit log service with hash-chain verification in backend/src/services/audit_service.py
 - [X] (speckit-mw9.197) T182 Create AuditLog model with hash_chain field in backend/src/models/audit_log.py
 - [X] (speckit-mw9.198) T183 Generate Alembic migration for audit_logs table with hash indexes
@@ -434,11 +434,11 @@ Per plan.md: Web application structure
 - [X] (speckit-mw9.209) T194 Implement DELETE /vendors/me (GDPR right to deletion) in backend/src/routers/vendors.py
 - [X] (speckit-mw9.210) T195 [P] Create account deletion UI with confirmation in frontend/src/components/features/settings/DeleteAccount.tsx
 - [X] (speckit-mw9.211) T196 Implement data portability export (machine-readable JSON) in backend/src/services/gdpr_service.py (same as T189)
-- [ ] (speckit-mw9.212) T197 [P] Write contract tests for complete data deletion verification in backend/tests/contract/test_deletion_verification.py
+- [X] (speckit-mw9.212) T197 [P] Write contract tests for complete data deletion verification in backend/tests/contract/test_deletion_verification.py
 
 ### Data Retention Policy Enforcement
 
-- [ ] (speckit-mw9.213) T198 [P] Write unit tests for retention policy service in backend/tests/unit/test_retention_policy.py
+- [X] (speckit-mw9.213) T198 [P] Write unit tests for retention policy service in backend/tests/unit/test_retention_policy.py
 - [X] (speckit-mw9.214) T199 Create RetentionPolicy model with configurable periods per tenant in backend/src/models/gdpr_compliance.py (DataRetentionPolicy)
 - [X] (speckit-mw9.215) T200 Generate migration for retention_policies table (in migration 010_audit_gdpr_compliance.py)
 - [X] (speckit-mw9.216) T201 Implement retention policy service in backend/src/services/retention_policy_service.py
@@ -478,10 +478,10 @@ Per plan.md: Web application structure
 
 ### Quality Assurance
 
-- [ ] (speckit-mw9.191) T176 [P] Run full test suite and ensure ≥90% coverage
-- [ ] (speckit-mw9.192) T177 [P] Conduct accessibility audit (WCAG 2.1 AA)
-- [ ] (speckit-mw9.193) T178 [P] Run Lighthouse performance audit on mobile
-- [ ] (speckit-mw9.194) T179 Validate all checklist items from checklists/ directory
+- [X] (speckit-mw9.191) T176 [P] Run full test suite and ensure ≥90% coverage
+- [X] (speckit-mw9.192) T177 [P] Conduct accessibility audit (WCAG 2.1 AA)
+- [X] (speckit-mw9.193) T178 [P] Run Lighthouse performance audit on mobile
+- [X] (speckit-mw9.194) T179 Validate all checklist items from checklists/ directory
 
 ---
 
