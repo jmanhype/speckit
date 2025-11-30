@@ -43,6 +43,61 @@ tags:
 
 paths:
   # ==================== Authentication ====================
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new vendor account
+      description: Create a new vendor account with email and password
+      operationId: registerVendor
+      security: []  # No auth required for registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, business_name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Vendor email address
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Password (minimum 8 characters)
+                business_name:
+                  type: string
+                  maxLength: 255
+                  description: Business or vendor name
+            example:
+              email: vendor@example.com
+              password: securepassword123
+              business_name: Fresh Farms Bakery
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '400':
+          description: Invalid request or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                email_exists:
+                  value:
+                    error: ValidationError
+                    message: Email already registered
+                weak_password:
+                  value:
+                    error: ValidationError
+                    message: Password must be at least 8 characters
+
   /auth/square/connect:
     post:
       tags: [Authentication]
