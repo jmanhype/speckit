@@ -451,9 +451,9 @@ Per plan.md: Web application structure
 - [X] (speckit-mw9.181) T154 [P] Generate OpenAPI documentation at /docs endpoint
 - [X] (speckit-mw9.182) T155 [P] Create Dockerfile for backend in backend/Dockerfile
 - [X] (speckit-mw9.183) T156 [P] Create Dockerfile for frontend in frontend/Dockerfile
-- [ ] (speckit-mw9.184) T157 [P] Update quickstart.md with final setup instructions
-- [ ] (speckit-mw9.185) T158 [P] Create deployment guide in docs/DEPLOYMENT.md
-- [ ] (speckit-mw9.186) T159 [P] Setup GitHub Actions CI/CD pipeline in .github/workflows/
+- [X] (speckit-mw9.184) T157 [P] Update quickstart.md with final setup instructions
+- [X] (speckit-mw9.185) T158 [P] Create deployment guide in docs/DEPLOYMENT.md
+- [X] (speckit-mw9.186) T159 [P] Setup GitHub Actions CI/CD pipeline in .github/workflows/
 
 ### Performance Optimization
 
