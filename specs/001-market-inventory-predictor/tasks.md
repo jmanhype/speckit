@@ -387,7 +387,7 @@ Per plan.md: Web application structure
 
 - [ ] (speckit-mw9.164) T137 [P] Write integration tests for feedback submission in backend/tests/integration/test_feedback.py
 - [X] (speckit-mw9.165) T138 Implement POST /feedback endpoint in backend/src/routers/feedback.py
-- [ ] (speckit-mw9.166) T139 Implement model retraining with feedback in backend/src/ml/model_training.py
+- [X] (speckit-mw9.166) T139 Implement model retraining with feedback in backend/src/services/model_training.py
 - [ ] (speckit-mw9.167) T140 [P] Create feedback form component in frontend/src/components/features/feedback/FeedbackForm.tsx
 
 ### Subscription & Billing
@@ -472,9 +472,9 @@ Per plan.md: Web application structure
 
 ### Production Readiness
 
-- [ ] (speckit-mw9.10) T173 [P] Implement prediction accuracy tracking system for SC-002 (70% within 20% margin) in backend/src/services/prediction_service.py
+- [X] (speckit-mw9.10) T173 [P] Implement prediction accuracy tracking system for SC-002 (70% within 20% margin) in backend/src/services/prediction_accuracy_tracking.py
 - [X] (speckit-mw9.11) T174 [P] Add load testing for 1000 concurrent users (SC-007) using k6 or Locust in backend/tests/load/locustfile.py
-- [ ] (speckit-mw9.12) T175 [P] Implement user metrics collection for SC-003, SC-008, SC-012 in backend/src/services/analytics_service.py
+- [X] (speckit-mw9.12) T175 [P] Implement user metrics collection for SC-003, SC-008, SC-012 in backend/src/services/analytics_service.py
 
 ### Quality Assurance
 
