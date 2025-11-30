@@ -11,6 +11,8 @@ This repository provides a framework that can be integrated into any software pr
 ```
 .
 ├── .claude/
+│   ├── settings.json          # Claude Code hooks (Beads integration)
+│   ├── README.md              # Configuration documentation
 │   └── commands/              # Slash command definitions for Claude Code
 │       ├── speckit.specify.md    # Create feature specifications
 │       ├── speckit.clarify.md    # Resolve ambiguities
@@ -61,7 +63,9 @@ To use Spec Kit in your project:
    ```bash
    cd your-project
    cp -r /path/to/speckit/.specify ./
+   mkdir -p .claude/commands
    cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
+   cp /path/to/speckit/.claude/settings.json ./.claude/
    ```
 
 2. **Create project-specific CLAUDE.md**:

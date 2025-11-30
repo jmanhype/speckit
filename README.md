@@ -60,7 +60,9 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
    ```bash
    cd your-project
    cp -r ../speckit-framework/.specify ./
+   mkdir -p .claude/commands
    cp -r ../speckit-framework/.claude/commands/speckit*.md ./.claude/commands/
+   cp ../speckit-framework/.claude/settings.json ./.claude/
    ```
 
 3. **Add CLAUDE.md to your project root** (see Setup section below)
@@ -94,7 +96,9 @@ For the complete experience with persistent memory:
 
    # Or manual copy
    cp -r /path/to/speckit/.specify ./
+   mkdir -p .claude/commands
    cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
+   cp /path/to/speckit/.claude/settings.json ./.claude/
    cp /path/to/speckit/AGENTS.md ./
    ```
 
@@ -126,6 +130,8 @@ your-project/
 │   ├── issues.jsonl           # Issue storage
 │   └── beads.db               # SQLite cache
 ├── .claude/
+│   ├── settings.json          # Claude Code hooks (Beads integration)
+│   ├── README.md              # Configuration documentation
 │   └── commands/              # Slash command definitions
 │       ├── speckit.specify.md
 │       ├── speckit.plan.md

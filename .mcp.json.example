@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/mcp.json",
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-memory"],
+      "description": "Persistent memory storage"
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-puppeteer"],
+      "description": "Browser automation for screenshots and testing"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-filesystem", "/path/to/allowed/directory"],
+      "description": "File system access (specify allowed paths)"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-github"],
+      "env": {
+        "GITHUB_TOKEN": "your-token-here"
+      },
+      "description": "GitHub API integration"
+    },
+    "beads": {
+      "command": "uvx",
+      "args": ["beads-mcp"],
+      "description": "Beads persistent task memory (if using Beads MCP)"
+    }
+  }
+}
