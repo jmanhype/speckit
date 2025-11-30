@@ -60,9 +60,8 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
    ```bash
    cd your-project
    cp -r ../speckit-framework/.specify ./
-   mkdir -p .claude/commands
-   cp -r ../speckit-framework/.claude/commands/speckit*.md ./.claude/commands/
-   cp ../speckit-framework/.claude/settings.json ./.claude/
+   cp -r ../speckit-framework/.claude ./
+   chmod +x ./.claude/hooks/*.sh  # Make hooks executable
    ```
 
 3. **Add CLAUDE.md to your project root** (see Setup section below)
@@ -91,15 +90,13 @@ For the complete experience with persistent memory:
    ```bash
    cd your-project
 
-   # Using install script (automatic detection)
-   curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/speckit/main/install.sh | bash
-
-   # Or manual copy
+   # Copy framework files
    cp -r /path/to/speckit/.specify ./
-   mkdir -p .claude/commands
-   cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
-   cp /path/to/speckit/.claude/settings.json ./.claude/
+   cp -r /path/to/speckit/.claude ./
    cp /path/to/speckit/AGENTS.md ./
+
+   # Make hook scripts executable
+   chmod +x ./.claude/hooks/*.sh
    ```
 
 3. **Initialize Beads**:
@@ -130,20 +127,25 @@ your-project/
 │   ├── issues.jsonl           # Issue storage
 │   └── beads.db               # SQLite cache
 ├── .claude/
-│   ├── settings.json          # Claude Code hooks (Beads integration)
+│   ├── settings.json          # Project settings (hooks, permissions, env)
+│   ├── settings.local.json    # Local overrides (gitignored)
 │   ├── README.md              # Configuration documentation
-│   └── commands/              # Slash command definitions
-│       ├── speckit.specify.md
-│       ├── speckit.plan.md
-│       ├── speckit.tasks.md
-│       ├── speckit.implement.md
-│       ├── speckit.clarify.md
-│       ├── speckit.checklist.md
-│       ├── speckit.analyze.md
-│       ├── speckit.constitution.md
-│       ├── speckit.taskstoissues.md
-│       ├── speckit-workflow-v2.md
-│       └── speckit-orchestrate.md
+│   ├── commands/              # Slash commands (user-invoked)
+│   │   ├── speckit.*.md       # Spec Kit workflow commands
+│   │   └── _example-command.md
+│   ├── skills/                # Model-invoked skills (auto-triggered)
+│   │   ├── beads-integration/ # Persistent memory
+│   │   ├── spec-kit-workflow/ # Workflow guidance
+│   │   └── spec-validation/   # Quality validation
+│   ├── agents/                # Custom AI subagents
+│   │   ├── spec-validator.md
+│   │   ├── consistency-checker.md
+│   │   └── beads-sync.md
+│   └── hooks/                 # External hook scripts
+│       ├── session-start.sh   # Session initialization
+│       ├── pre-compact.sh     # Pre-compaction tasks
+│       └── post-edit.sh       # Post-edit automation
+├── .mcp.json                  # Project-scoped MCP servers (optional)
 ├── .specify/
 │   ├── memory/
 │   │   └── constitution.md    # Project architectural principles
@@ -170,6 +172,40 @@ your-project/
 ├── AGENTS.md                  # Instructions for AI agents (Beads workflow)
 └── CLAUDE.md                  # Instructions for Claude Code
 ```
+
+## Extensibility
+
+Spec Kit provides three extension mechanisms for Claude Code. See [.claude/README.md](.claude/README.md) for full documentation.
+
+### Skills (Model-Invoked)
+
+Skills in `.claude/skills/` are automatically activated by Claude based on conversation context - no user action required.
+
+| Skill | Auto-Triggered When... |
+|-------|------------------------|
+| `spec-kit-workflow` | Discussing features, specs, or planning |
+| `beads-integration` | Working on tasks or multi-session projects |
+| `spec-validation` | Creating or reviewing specifications |
+
+### Agents (Subagents)
+
+Agents in `.claude/agents/` are specialized AI subagents invoked via the Task tool for focused sub-tasks.
+
+| Agent | Purpose |
+|-------|---------|
+| `spec-validator` | Validates spec quality and technology-agnosticism |
+| `consistency-checker` | Cross-artifact validation (spec ↔ plan ↔ tasks) |
+| `beads-sync` | Synchronizes tasks.md with Beads |
+
+### Hooks (Automation)
+
+Hooks in `.claude/hooks/` run at Claude Code lifecycle events:
+
+| Hook | When It Fires |
+|------|---------------|
+| `session-start.sh` | Session begins (primes Beads) |
+| `pre-compact.sh` | Before context compaction |
+| `post-edit.sh` | After file edits (example for auto-formatting) |
 
 ## Workflow Commands
 
