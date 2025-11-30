@@ -6,11 +6,20 @@ This directory contains Claude Code configuration for the Spec Kit framework.
 
 ```
 .claude/
-├── settings.json       # Project settings (hooks, permissions, env)
-├── settings.local.json # Local overrides (gitignored, create if needed)
-├── commands/           # Custom slash commands
-│   └── speckit.*.md    # Spec Kit workflow commands
-└── README.md           # This file
+├── settings.json           # Project settings (hooks, permissions, env)
+├── settings.local.json     # Local overrides (gitignored, create if needed)
+├── commands/               # Custom slash commands
+│   ├── speckit.*.md        # Spec Kit workflow commands
+│   └── _example-command.md # Template for custom commands
+├── agents/                 # Custom AI subagents
+│   ├── spec-validator.md   # Validates spec quality
+│   ├── consistency-checker.md # Cross-artifact validation
+│   └── beads-sync.md       # Beads synchronization
+├── hooks/                  # External hook scripts
+│   ├── session-start.sh    # Session initialization
+│   ├── pre-compact.sh      # Pre-compaction tasks
+│   └── post-edit.sh        # Post-edit automation (example)
+└── README.md               # This file
 ```
 
 ## Settings Hierarchy
@@ -22,6 +31,146 @@ Settings are applied in order of precedence (highest to lowest):
 3. **Local project settings** (`.claude/settings.local.json`) - gitignored
 4. **Shared project settings** (`.claude/settings.json`) - this file
 5. **User settings** (`~/.claude/settings.json`)
+
+---
+
+## Custom Agents
+
+The `agents/` directory contains custom AI subagents that extend Claude Code with specialized capabilities for the Spec Kit workflow.
+
+### Available Agents
+
+| Agent | Purpose | When to Use |
+|-------|---------|-------------|
+| `spec-validator` | Validates spec quality | After creating/editing spec.md |
+| `consistency-checker` | Cross-artifact validation | Before implementation |
+| `beads-sync` | Syncs tasks with Beads | During long-running projects |
+
+### Agent Format
+
+Agents are Markdown files with YAML frontmatter:
+
+```markdown
+---
+name: my-agent
+description: What this agent does
+tools:
+  - Read
+  - Grep
+  - Bash
+---
+
+# Agent Name
+
+You are a specialized agent that...
+
+## Instructions
+
+1. First, do this
+2. Then, do that
+```
+
+### Using Agents
+
+Agents can be invoked through the Task tool:
+
+```
+Use the spec-validator agent to check specs/001-my-feature/spec.md
+```
+
+### Creating Custom Agents
+
+1. Create a new `.md` file in `.claude/agents/`
+2. Add YAML frontmatter with name, description, and tools
+3. Write the agent's system prompt in Markdown
+4. The agent will be available in your project
+
+**User-level agents**: Place in `~/.claude/agents/` for cross-project availability.
+
+---
+
+## Hook Scripts
+
+The `hooks/` directory contains external scripts that can be referenced from `settings.json` instead of inline commands.
+
+### Available Scripts
+
+| Script | Purpose | Trigger |
+|--------|---------|---------|
+| `session-start.sh` | Prime Beads + show status | SessionStart |
+| `pre-compact.sh` | Preserve Beads context | PreCompact |
+| `post-edit.sh` | Auto-format edited files | PostToolUse (Edit) |
+
+### Using External Hook Scripts
+
+To use scripts instead of inline commands, update `settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "./.claude/hooks/session-start.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  }
+}
+```
+
+### Hook Script Benefits
+
+- **Complex logic**: Scripts can have conditionals, loops, etc.
+- **Reusability**: Same script for multiple hooks
+- **Testing**: Can test scripts independently
+- **Version control**: Track changes to hook logic
+
+### Creating Custom Hooks
+
+1. Create a script in `.claude/hooks/`
+2. Make it executable: `chmod +x script.sh`
+3. Reference it in `settings.json`
+4. Available variables:
+   - `$CLAUDE_FILE_PATH` - File being edited (for PostToolUse)
+   - `$CLAUDE_TOOL_NAME` - Tool being used
+
+---
+
+## Slash Commands
+
+The `commands/` directory contains slash command definitions.
+
+### Spec Kit Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/speckit.specify` | Create feature specification |
+| `/speckit.clarify` | Resolve spec ambiguities |
+| `/speckit.plan` | Create technical plan |
+| `/speckit.tasks` | Generate task list |
+| `/speckit.implement` | Execute implementation |
+| `/speckit.analyze` | Cross-artifact validation |
+| `/speckit.checklist` | Quality checklists |
+| `/speckit.constitution` | Project principles |
+| `/speckit.taskstoissues` | Convert tasks to GitHub issues |
+| `/speckit-workflow-v2` | Full orchestrated workflow |
+| `/speckit-orchestrate` | Quick workflow |
+
+### Creating Custom Commands
+
+See `_example-command.md` for a template. Key features:
+
+- **$ARGUMENTS**: Passes user input to the prompt
+- **Structured prompts**: Guide Claude through steps
+- **Project commands**: `.claude/commands/` (project-specific)
+- **User commands**: `~/.claude/commands/` (global)
+
+---
 
 ## Configuration Reference
 
@@ -53,11 +202,11 @@ Control what Claude can and cannot do:
 {
   "permissions": {
     "allow": [
-      "Bash(./.specify/scripts/bash/*)",  // Spec Kit scripts
-      "Bash(bd:*)",                        // Beads commands
-      "Bash(git status:*)",                // Git read commands
-      "Bash(npm run test:*)",              // Test commands
-      "Read(specs/**)"                     // Spec files
+      "Bash(./.specify/scripts/bash/*)",
+      "Bash(bd:*)",
+      "Bash(git status:*)",
+      "Bash(npm run test:*)",
+      "Read(specs/**)"
     ]
   }
 }
@@ -102,6 +251,8 @@ Set environment variables for all sessions:
 | `includeCoAuthoredBy` | Add co-authored-by in commits | `true` |
 | `disableAllHooks` | Disable all hooks | `false` |
 
+---
+
 ## Files
 
 ### settings.json (Shared)
@@ -127,7 +278,7 @@ Example use cases:
       {
         "hooks": [
           {
-            "command": "echo 'Custom session start'",
+            "command": "./.claude/hooks/session-start.sh",
             "type": "command"
           }
         ],
@@ -146,37 +297,26 @@ Example use cases:
 }
 ```
 
-### commands/
-
-Slash commands for the Spec Kit workflow:
-
-| Command | Purpose |
-|---------|---------|
-| `/speckit.specify` | Create feature specification |
-| `/speckit.clarify` | Resolve spec ambiguities |
-| `/speckit.plan` | Create technical plan |
-| `/speckit.tasks` | Generate task list |
-| `/speckit.implement` | Execute implementation |
-| `/speckit.analyze` | Cross-artifact validation |
-| `/speckit.checklist` | Quality checklists |
-| `/speckit.constitution` | Project principles |
-| `/speckit.taskstoissues` | Convert tasks to GitHub issues |
-| `/speckit-workflow-v2` | Full orchestrated workflow |
-| `/speckit-orchestrate` | Quick workflow |
+---
 
 ## Integrating Into Your Project
 
 When copying Spec Kit to your project:
 
 ```bash
-# Copy the entire .claude directory
+# Copy the entire .claude directory (recommended)
 cp -r /path/to/speckit/.claude ./
 
 # Or copy selectively
-mkdir -p .claude/commands
+mkdir -p .claude/commands .claude/agents .claude/hooks
 cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
 cp /path/to/speckit/.claude/settings.json ./.claude/
+cp -r /path/to/speckit/.claude/agents/*.md ./.claude/agents/
+cp -r /path/to/speckit/.claude/hooks/*.sh ./.claude/hooks/
+chmod +x ./.claude/hooks/*.sh
 ```
+
+---
 
 ## Customization Examples
 
@@ -207,11 +347,11 @@ Run commands before/after specific tools:
       {
         "hooks": [
           {
-            "command": "npm run lint --fix",
+            "command": "./.claude/hooks/post-edit.sh \"$CLAUDE_FILE_PATH\"",
             "type": "command"
           }
         ],
-        "matcher": "Edit"
+        "matcher": "Edit|Write"
       }
     ]
   }
@@ -259,6 +399,8 @@ Then enable in settings:
 }
 ```
 
+---
+
 ## Beads Integration
 
 The default `settings.json` includes hooks for [Beads](https://github.com/steveyegge/beads):
@@ -276,12 +418,14 @@ bd init
 bd doctor  # Verify setup
 ```
 
+---
+
 ## Troubleshooting
 
 ### Hooks not running?
 
 1. Check hook syntax in settings.json (must be valid JSON)
-2. Ensure commands are executable
+2. Ensure commands are executable: `chmod +x .claude/hooks/*.sh`
 3. Test command manually in terminal
 4. Check Claude Code logs for errors
 
@@ -305,6 +449,15 @@ bd doctor  # Verify setup
 3. Check precedence - local settings override shared settings
 4. Restart Claude Code after changes
 
+### Agents not appearing?
+
+1. Check YAML frontmatter syntax
+2. Ensure file is in `.claude/agents/`
+3. Verify file extension is `.md`
+4. Check for required fields: name, description, tools
+
+---
+
 ## Best Practices
 
 From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
@@ -314,11 +467,16 @@ From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-c
 3. **Use hooks for automation** - Auto-format, auto-lint after edits
 4. **Leverage MCP servers** - Extend Claude with additional tools
 5. **Use /clear frequently** - Reset context between unrelated tasks
+6. **Create custom agents** - For repeated specialized tasks
+7. **Use external hook scripts** - For complex automation logic
+
+---
 
 ## Further Reading
 
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
 - [Settings Reference](https://docs.anthropic.com/en/docs/claude-code/settings)
 - [Hooks Guide](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Subagents Documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
 - [MCP Configuration](https://docs.anthropic.com/en/docs/claude-code/mcp)
 - [Permissions (IAM)](https://docs.anthropic.com/en/docs/claude-code/iam)
