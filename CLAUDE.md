@@ -156,6 +156,85 @@ Before submitting changes:
 - [ ] Documentation is updated
 - [ ] Examples in README.md are accurate
 
+## Multi-Session & Long-Running Tasks
+
+Spec Kit is designed to support complex features that span multiple hours or sessions. Follow these practices for continuity:
+
+### Session Resumption
+
+When resuming work on an existing feature:
+
+1. **Re-read all artifacts** at session start:
+   ```
+   Read: spec.md → plan.md → tasks.md (in that order)
+   ```
+
+2. **Check progress state**:
+   - Review completed tasks (checked items in `tasks.md`)
+   - Identify current task (first unchecked item)
+   - Note any blockers or discoveries logged in Beads
+
+3. **Update timestamps** in `tasks.md` header:
+   ```markdown
+   ## Progress
+   - Started: 2025-01-15 09:00
+   - Last session: 2025-01-15 14:30
+   - Current session: 2025-01-16 10:00
+   - Velocity: ~3 tasks/hour
+   ```
+
+### Autonomy During Implementation
+
+For long-running tasks, operate with maximum autonomy:
+
+- **Resolve ambiguities autonomously** rather than stopping to ask for clarification
+- **Proceed through milestones** without prompting for "next steps"
+- **Make reasonable technical decisions** aligned with constitution principles
+- **Document decisions** in the relevant artifact (plan.md for architecture, tasks.md for implementation notes)
+
+When you encounter a decision point:
+1. Check constitution.md for guidance
+2. Review similar patterns in existing code
+3. Make the decision and document it
+4. Continue working
+
+Only stop to ask the user when:
+- The decision has significant cost/risk implications
+- Multiple valid approaches exist with major trade-offs
+- The requirement is genuinely ambiguous and blocks all progress
+
+### Breakpoint Practices
+
+At natural stopping points (end of phase, major milestone, session end):
+
+1. **Update all living documents**:
+   - Mark completed tasks in `tasks.md`
+   - Add implementation notes to `plan.md` if architecture evolved
+   - Log discoveries in Beads
+
+2. **Commit frequently** with descriptive messages:
+   ```bash
+   git commit -m "feat(auth): implement JWT validation middleware [T003]"
+   ```
+
+3. **Write breadcrumbs** for next session:
+   ```markdown
+   ## Session Notes
+   - Completed: T001-T005 (auth foundation)
+   - In progress: T006 (rate limiting) - middleware skeleton done
+   - Next: Add Redis backend for rate limit counters
+   - Blocker: None
+   ```
+
+### Handling Multi-Hour Tasks
+
+For tasks spanning 4+ hours:
+
+1. **Break into sub-milestones** mentally (don't expand tasks.md excessively)
+2. **Commit at each sub-milestone** even if task isn't complete
+3. **Update Beads** with progress notes every 1-2 hours
+4. **Keep artifacts synchronized** - if you discover something, document it immediately
+
 ## Key Principles
 
 ### Separation of Concerns
