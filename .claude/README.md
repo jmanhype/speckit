@@ -8,9 +8,16 @@ This directory contains Claude Code configuration for the Spec Kit framework.
 .claude/
 ├── settings.json           # Project settings (hooks, permissions, env)
 ├── settings.local.json     # Local overrides (gitignored, create if needed)
-├── commands/               # Custom slash commands
+├── commands/               # Custom slash commands (user-invoked)
 │   ├── speckit.*.md        # Spec Kit workflow commands
 │   └── _example-command.md # Template for custom commands
+├── skills/                 # Model-invoked skills (auto-triggered)
+│   ├── spec-kit-workflow/  # Workflow guidance
+│   │   └── SKILL.md
+│   ├── beads-integration/  # Persistent memory
+│   │   └── SKILL.md
+│   └── spec-validation/    # Quality validation
+│       └── SKILL.md
 ├── agents/                 # Custom AI subagents
 │   ├── spec-validator.md   # Validates spec quality
 │   ├── consistency-checker.md # Cross-artifact validation
@@ -31,6 +38,66 @@ Settings are applied in order of precedence (highest to lowest):
 3. **Local project settings** (`.claude/settings.local.json`) - gitignored
 4. **Shared project settings** (`.claude/settings.json`) - this file
 5. **User settings** (`~/.claude/settings.json`)
+
+---
+
+## Skills (Model-Invoked)
+
+The `skills/` directory contains **model-invoked skills** - specialized capabilities that Claude automatically activates based on conversation context. Unlike slash commands (user-invoked), skills are triggered by Claude when relevant.
+
+### Available Skills
+
+| Skill | Purpose | Auto-Triggered When... |
+|-------|---------|------------------------|
+| `spec-kit-workflow` | Guides workflow phases | Discussing features, specs, or planning |
+| `beads-integration` | Manages persistent memory | Working on tasks or multi-session projects |
+| `spec-validation` | Validates spec quality | Creating/reviewing specifications |
+
+### Skill Format
+
+Skills live in subdirectories with a `SKILL.md` file:
+
+```
+.claude/skills/
+├── my-skill-name/
+│   ├── SKILL.md              (REQUIRED - skill definition)
+│   ├── reference.md          (optional - supporting docs)
+│   ├── scripts/              (optional - helper scripts)
+│   └── templates/            (optional - file templates)
+```
+
+**SKILL.md Format:**
+```yaml
+---
+name: skill-name              # lowercase, hyphens only (max 64 chars)
+description: What it does...  # Claude uses this to decide when to invoke
+allowed-tools:                # Optional tool restrictions
+  - Read
+  - Write
+  - Bash
+---
+
+# Skill Title
+
+Instructions for Claude when this skill is active...
+```
+
+### Skills vs Commands vs Agents
+
+| Feature | User-Invoked? | Auto-Triggered? | Use Case |
+|---------|---------------|-----------------|----------|
+| **Commands** (commands/) | ✅ Yes (`/command`) | ❌ No | Explicit workflows |
+| **Skills** (skills/) | ❌ No | ✅ Yes | Contextual guidance |
+| **Agents** (agents/) | ✅ Yes (via Task) | ❌ No | Specialized sub-tasks |
+
+### Creating Custom Skills
+
+1. Create directory: `.claude/skills/my-skill/`
+2. Create `SKILL.md` with YAML frontmatter
+3. Write clear `description` (Claude uses this to decide invocation)
+4. Include instructions and examples in the body
+
+**User-level skills**: Place in `~/.claude/skills/` for cross-project availability.
 
 ---
 
@@ -308,10 +375,11 @@ When copying Spec Kit to your project:
 cp -r /path/to/speckit/.claude ./
 
 # Or copy selectively
-mkdir -p .claude/commands .claude/agents .claude/hooks
+mkdir -p .claude/commands .claude/agents .claude/hooks .claude/skills
 cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
 cp /path/to/speckit/.claude/settings.json ./.claude/
 cp -r /path/to/speckit/.claude/agents/*.md ./.claude/agents/
+cp -r /path/to/speckit/.claude/skills/* ./.claude/skills/
 cp -r /path/to/speckit/.claude/hooks/*.sh ./.claude/hooks/
 chmod +x ./.claude/hooks/*.sh
 ```
@@ -476,6 +544,7 @@ From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-c
 
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
 - [Settings Reference](https://docs.anthropic.com/en/docs/claude-code/settings)
+- [Skills Documentation](https://docs.anthropic.com/en/docs/claude-code/skills)
 - [Hooks Guide](https://docs.anthropic.com/en/docs/claude-code/hooks)
 - [Subagents Documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
 - [MCP Configuration](https://docs.anthropic.com/en/docs/claude-code/mcp)
