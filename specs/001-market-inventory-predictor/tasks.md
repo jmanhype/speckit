@@ -418,9 +418,9 @@ Per plan.md: Web application structure
 - [X] (speckit-mw9.196) T181 [P] Implement immutable audit log service with hash-chain verification in backend/src/services/audit_service.py
 - [X] (speckit-mw9.197) T182 Create AuditLog model with hash_chain field in backend/src/models/audit_log.py
 - [X] (speckit-mw9.198) T183 Generate Alembic migration for audit_logs table with hash indexes
-- [ ] (speckit-mw9.199) T184 [P] Implement WORM storage adapter for S3 Object Lock in backend/src/adapters/worm_storage_adapter.py
-- [ ] (speckit-mw9.200) T185 Implement audit trail middleware to log all API requests in backend/src/api/middleware/audit.py
-- [ ] (speckit-mw9.201) T186 [P] Implement GET /audit/verify endpoint for hash-chain verification in backend/src/api/v1/audit.py
+- [X] (speckit-mw9.199) T184 [P] Implement WORM storage adapter for S3 Object Lock in backend/src/adapters/worm_storage_adapter.py
+- [X] (speckit-mw9.200) T185 Implement audit trail middleware to log all API requests in backend/src/middleware/audit.py
+- [X] (speckit-mw9.201) T186 [P] Implement GET /audit/verify endpoint for hash-chain verification in backend/src/routers/audit.py
 - [X] (speckit-mw9.202) T187 [P] Write integration tests for audit trail completeness in backend/tests/integration/test_audit_trail.py
 
 ### GDPR Compliance (Constitution §IV)
