@@ -41,6 +41,9 @@ sample-project/
 *.beads.db
 *.beads.db-journal
 
+# Claude Code local settings (user-specific)
+.claude/settings.local.json
+
 # Environment
 .env
 .env.local

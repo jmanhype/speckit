@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "command -v bd >/dev/null 2>&1 && bd prime || true",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "command -v bd >/dev/null 2>&1 && bd prime || true",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  }
+}
