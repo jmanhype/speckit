@@ -1,4 +1,4 @@
-# Spec Kit - Specification-Driven Development Framework
+# Spec Kit - Specification-Driven Development with Beads Integration
 
 **Spec Kit** is a comprehensive workflow system that guides software features from conception through implementation using a structured, specification-driven approach.
 
@@ -10,6 +10,27 @@ Spec Kit enforces a rigorous development workflow that separates concerns and en
 constitution → specify → clarify → plan → checklist → tasks → analyze → implement
 ```
 
+### The Killer Combo: Spec Kit + Beads 💎
+
+**Spec Kit** provides structure (WHAT/WHY/HOW).
+**Beads** provides memory (persistent task graph that survives context limits).
+
+| Tool | What It Does | Integration Point |
+|------|--------------|------------------|
+| **Spec Kit** | Specs, plans, and task structure | `specs/*/spec.md`, `plan.md`, `tasks.md` |
+| **Beads** | Living memory, task graph, discoveries | `.beads/` JSONL + SQLite database |
+
+Together they solve:
+- ✅ Structured specification-driven development
+- ✅ Long-term memory across sessions
+- ✅ Dependency tracking that doesn't disappear
+- ✅ Work discovery and prioritization
+
+**`tasks.md` becomes an index** pointing to Beads issues, not a massive backlog.
+**Beads stores the actual work** with dependencies, notes, and discoveries.
+
+See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
+
 ### Key Principles
 
 - **Specification-first**: Define WHAT and WHY before HOW
@@ -17,6 +38,7 @@ constitution → specify → clarify → plan → checklist → tasks → analyz
 - **Quality gates**: Validate completeness and consistency at each phase
 - **Executable tasks**: Generate dependency-ordered, testable task lists
 - **User story prioritization**: Enable incremental delivery and independent testing
+- **Beads integration**: Persistent memory layer for long-running work and discoveries
 
 ## Installation
 
@@ -25,12 +47,13 @@ constitution → specify → clarify → plan → checklist → tasks → analyz
 - **Claude Code** (claude.ai/code) - Spec Kit is designed to work with Claude Code's slash command system
 - **Git** (recommended but optional)
 - **Bash** (for automation scripts)
+- **Beads CLI** (optional but recommended) - For persistent task memory
 
-### Quick Start
+### Quick Start (Spec Kit Only)
 
 1. **Clone or download this repository**:
    ```bash
-   git clone <your-speckit-repo-url> .speckit-framework
+   git clone https://github.com/YOUR_USERNAME/speckit.git .speckit-framework
    ```
 
 2. **Copy Spec Kit into your project**:
@@ -48,10 +71,60 @@ constitution → specify → clarify → plan → checklist → tasks → analyz
    /speckit.specify Add user authentication with email/password
    ```
 
+### Full Setup (Spec Kit + Beads)
+
+For the complete experience with persistent memory:
+
+1. **Install Beads CLI**:
+   ```bash
+   # Homebrew (macOS/Linux)
+   brew tap steveyegge/beads
+   brew install bd
+
+   # Or install script
+   curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+   ```
+
+2. **Install Spec Kit**:
+   ```bash
+   cd your-project
+
+   # Using install script (automatic detection)
+   curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/speckit/main/install.sh | bash
+
+   # Or manual copy
+   cp -r /path/to/speckit/.specify ./
+   cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
+   cp /path/to/speckit/AGENTS.md ./
+   ```
+
+3. **Initialize Beads**:
+   ```bash
+   bd init
+   bd doctor  # Optional: verify setup
+   ```
+
+4. **(Optional) Install Beads MCP** for Claude Desktop/Amp:
+   ```bash
+   uv tool install beads-mcp
+   # Then configure in your agent's MCP settings
+   ```
+
+5. **Start your first feature**:
+   ```bash
+   # In Claude Code
+   /speckit.specify Add user authentication
+
+   # Agent will automatically integrate with Beads
+   ```
+
 ## Directory Structure
 
 ```
 your-project/
+├── .beads/                    # Beads task database (if using Beads)
+│   ├── issues.jsonl           # Issue storage
+│   └── beads.db               # SQLite cache
 ├── .claude/
 │   └── commands/              # Slash command definitions
 │       ├── speckit.specify.md
@@ -84,8 +157,9 @@ your-project/
 │   └── [###-feature-name]/
 │       ├── spec.md            # User-focused specification (WHAT/WHY)
 │       ├── plan.md            # Technical implementation plan (HOW)
-│       ├── tasks.md           # Executable task list
+│       ├── tasks.md           # Executable task list (with Beads IDs)
 │       └── checklists/        # Quality validation checklists
+├── AGENTS.md                  # Instructions for AI agents (Beads workflow)
 └── CLAUDE.md                  # Instructions for Claude Code
 ```
 

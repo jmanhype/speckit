@@ -36,6 +36,11 @@ test-project/
 example-project/
 sample-project/
 
+# Beads database (not committed to prevent merge conflicts)
+.beads/
+*.beads.db
+*.beads.db-journal
+
 # Environment
 .env
 .env.local

@@ -14,11 +14,34 @@ Sync Impact Report:
 - Created: 2025-11-18
 -->
 
-# RCST v2 Constitution
+# Project Constitution
 
 ## Core Principles
 
-### I. Test-First Development (TDD) - NON-NEGOTIABLE
+### I. Beads Integration for Work Memory - RECOMMENDED
+
+**All long-running work and discovered tasks SHOULD be tracked as Beads issues:**
+
+- `tasks.md` is for intent, structure, and indexing (NOT for storing the full backlog)
+- Beads stores the actual work with dependencies, notes, and discoveries
+- Each task in `tasks.md` SHOULD reference its Beads issue ID: `- [ ] (bd-xxxx) T001 ...`
+- Implementation SHOULD be driven from `bd ready` (not just markdown checkboxes)
+- Discoveries during implementation SHOULD create new Beads issues (not expand tasks.md)
+
+**Beads Workflow:**
+1. Before `/speckit.specify`: Search Beads for prior work (`bd search`, `bd list`)
+2. During `/speckit.plan`: Create epic issues for each phase
+3. After `/speckit.tasks`: Create Beads task issues and link IDs in `tasks.md`
+4. During `/speckit.implement`: Drive from `bd ready`, update both Beads and `tasks.md`
+5. End of session: Store discoveries and blockers in Beads for next session
+
+**Rationale:** Beads provides persistent memory across sessions that survives context limits, enabling long-running projects with AI agents.
+
+**See:** `AGENTS.md` for detailed Beads + Spec Kit workflow.
+
+---
+
+### II. Test-First Development (TDD) - RECOMMENDED
 
 **All code MUST be developed using strict Test-Driven Development (TDD):**
 - Tests MUST be written before implementation code
