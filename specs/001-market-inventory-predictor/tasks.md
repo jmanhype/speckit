@@ -388,7 +388,7 @@ Per plan.md: Web application structure
 - [ ] (speckit-mw9.164) T137 [P] Write integration tests for feedback submission in backend/tests/integration/test_feedback.py
 - [X] (speckit-mw9.165) T138 Implement POST /feedback endpoint in backend/src/routers/feedback.py
 - [X] (speckit-mw9.166) T139 Implement model retraining with feedback in backend/src/services/model_training.py
-- [ ] (speckit-mw9.167) T140 [P] Create feedback form component in frontend/src/components/features/feedback/FeedbackForm.tsx
+- [X] (speckit-mw9.167) T140 [P] Create feedback form component in frontend/src/components/features/feedback/FeedbackForm.tsx
 
 ### Subscription & Billing
 
@@ -396,7 +396,7 @@ Per plan.md: Web application structure
 - [X] (speckit-mw9.169) T142 Implement Stripe adapter in backend/src/services/stripe_service.py
 - [X] (speckit-mw9.170) T143 Implement billing service in backend/src/services/stripe_service.py
 - [X] (speckit-mw9.171) T144 Implement subscription tier enforcement in backend/src/middleware/subscription.py
-- [ ] (speckit-mw9.172) T145 [P] Create subscription upgrade page in frontend/src/pages/Subscription.tsx
+- [X] (speckit-mw9.172) T145 [P] Create subscription upgrade page in frontend/src/pages/SubscriptionPage.tsx
 
 ### Monitoring & Observability
 
