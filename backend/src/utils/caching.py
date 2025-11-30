@@ -46,7 +46,7 @@ def cache_key(*args, prefix: str = "cache", **kwargs) -> str:
     key_str = json.dumps(key_data, sort_keys=True, default=str)
 
     # Hash for shorter keys
-    key_hash = hashlib.md5(key_str.encode()).hexdigest()[:16]
+    key_hash = hashlib.md5(key_str.encode(), usedforsecurity=False).hexdigest()[:16]
 
     return f"{prefix}:{key_hash}"
 

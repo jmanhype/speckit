@@ -63,7 +63,7 @@ class WeatherService:
         date_str = target_date.date().isoformat() if target_date else "today"
 
         key_data = f"weather:{lat_rounded}:{lon_rounded}:{date_str}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        return hashlib.md5(key_data.encode(), usedforsecurity=False).hexdigest()
 
     async def get_forecast(
         self,

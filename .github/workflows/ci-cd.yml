@@ -225,6 +225,33 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/marketprep-frontend:buildcache,mode=max
 
   # ============================================================================
+  # Secrets Scanning
+  # ============================================================================
+  secrets-scan:
+    name: Secrets Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret detection
+
+      - name: Run Gitleaks secret scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional for Gitleaks Pro
+
+      - name: Run TruffleHog secret scanner
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ============================================================================
   # Security Scanning
   # ============================================================================
   security-scan:

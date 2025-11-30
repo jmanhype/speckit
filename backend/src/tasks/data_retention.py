@@ -214,10 +214,11 @@ def cleanup_temp_files(days_old: int = 7):
 
     try:
         import os
+        import tempfile
         from pathlib import Path
         from datetime import timedelta
 
-        temp_dir = Path("/tmp/marketprep")
+        temp_dir = Path(tempfile.gettempdir()) / "marketprep"
         if not temp_dir.exists():
             return {"status": "success", "deleted": 0, "reason": "temp_dir_not_found"}
 

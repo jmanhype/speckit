@@ -407,10 +407,10 @@ Per plan.md: Web application structure
 
 ### Security Hardening
 
-- [ ] (speckit-mw9.177) T150 [P] Implement CSRF protection for state parameter in backend/src/api/middleware/csrf.py
-- [ ] (speckit-mw9.178) T151 [P] Add input sanitization middleware in backend/src/api/middleware/sanitize.py
-- [ ] (speckit-mw9.179) T152 [P] Run bandit security scan and fix issues in backend/
-- [ ] (speckit-mw9.180) T153 [P] Implement secrets scanning in CI/CD pipeline
+- [X] (speckit-mw9.177) T150 [P] Implement CSRF protection for state parameter in backend/src/middleware/csrf.py
+- [X] (speckit-mw9.178) T151 [P] Add input sanitization middleware in backend/src/middleware/sanitize.py
+- [X] (speckit-mw9.179) T152 [P] Run bandit security scan and fix issues in backend/
+- [X] (speckit-mw9.180) T153 [P] Implement secrets scanning in CI/CD pipeline
 
 ### Compliance & Audit Trail (Constitution §IV)
 

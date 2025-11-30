@@ -281,7 +281,7 @@ class GDPRService:
         # Anonymize vendor profile
         vendor = self.db.query(Vendor).filter(Vendor.id == user_id).first()
         if vendor:
-            vendor.email = f"deleted_{hashlib.md5(user_id.encode()).hexdigest()}@anonymized.local"
+            vendor.email = f"deleted_{hashlib.md5(user_id.encode(), usedforsecurity=False).hexdigest()}@anonymized.local"
             vendor.business_name = f"Deleted User {user_id[:8]}"
             counts["vendor"] = 1
             self._log_deletion(user_id, "vendor", vendor.id, {}, dsar_id, anonymized=True)
