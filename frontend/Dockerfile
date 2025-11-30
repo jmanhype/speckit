@@ -23,8 +23,8 @@ FROM nginx:alpine
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built application from builder
-COPY --from=builder /app/build /usr/share/nginx/html
+# Copy built application from builder (Vite outputs to dist/ by default)
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
