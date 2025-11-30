@@ -59,6 +59,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Independent test criteria for each story
    - Suggested MVP scope (typically just User Story 1)
    - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+   - **IMPORTANT**: Remind user to run `/speckit.analyze` next to validate consistency before starting implementation
 
 Context for task generation: $ARGUMENTS
 

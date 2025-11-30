@@ -33,6 +33,13 @@
 
 [Gates determined based on constitution file]
 
+**⚠️ CRITICAL**: If constitution includes "Graceful Degradation" requirements, the plan MUST define specific fallback strategies for:
+- External API failures (with timeouts, retry policies, fallback data sources)
+- Service failures (with degraded mode operation)
+- Data unavailability (with cached/default responses)
+
+**Note**: Tasks for implementing these fallback strategies MUST be included in tasks.md (often missed - verify during `/speckit.analyze` phase).
+
 ## Project Structure
 
 ### Documentation (this feature)

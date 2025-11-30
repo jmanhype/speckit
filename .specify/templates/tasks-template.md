@@ -12,6 +12,8 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+**⚠️ IMPORTANT**: After generating tasks.md, ALWAYS run `/speckit.analyze` to validate consistency between spec, plan, and tasks before implementation begins.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -242,10 +244,49 @@ With multiple developers:
 
 ## Notes
 
-- [P] tasks = different files, no dependencies
-- [Story] label maps task to specific user story for traceability
+- **[P] tasks** = different files, no dependencies
+- **[Story] label** maps task to specific user story for traceability
 - Each user story should be independently completable and testable
-- Verify tests fail before implementing
+- Verify tests fail before implementing (TDD)
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+
+---
+
+## Beads Integration (Recommended)
+
+For long-running projects with persistent task memory:
+
+### 1. Create Epic
+
+```bash
+bd create "Feature Name" --type epic --priority P1
+# Note the epic ID (e.g., speckit-abc123)
+```
+
+### 2. Create Task Issues
+
+After generating tasks.md, use the bulk import workaround:
+
+```bash
+.specify/scripts/bash/create-beads-issues.sh specs/###-feature-name/tasks.md speckit-abc123
+```
+
+### 3. Link Beads IDs
+
+Update tasks.md with Beads issue IDs:
+
+```bash
+.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature-name/tasks.md
+```
+
+### 4. Drive Implementation from Beads
+
+```bash
+bd ready          # Show tasks ready to work on
+bd update ID --status in-progress
+bd update ID --status done
+```
+
+**Why Beads?** Provides persistent memory across sessions, survives context limits, enables long-running AI-assisted projects.

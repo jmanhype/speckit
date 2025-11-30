@@ -146,7 +146,9 @@ your-project/
 │   │   ├── check-prerequisites.sh
 │   │   ├── create-new-feature.sh
 │   │   ├── setup-plan.sh
-│   │   └── update-agent-context.sh
+│   │   ├── update-agent-context.sh
+│   │   ├── create-beads-issues.sh        # Bulk import tasks to Beads
+│   │   └── update-tasks-with-beads-ids.sh  # Link Beads IDs
 │   └── templates/             # Document templates
 │       ├── spec-template.md
 │       ├── plan-template.md
@@ -370,6 +372,9 @@ Modify templates in `.specify/templates/` to match your project's needs:
 # Generate tasks
 /speckit.tasks
 
+# Validate consistency (IMPORTANT: Always run before implementing!)
+/speckit.analyze
+
 # Implement
 /speckit.implement
 ```
@@ -390,6 +395,43 @@ Modify templates in `.specify/templates/` to match your project's needs:
 eval $(./.specify/scripts/bash/check-prerequisites.sh --paths-only)
 echo $FEATURE_DIR  # prints: specs/001-user-auth
 ```
+
+### Example 4: Beads Integration Workflow
+
+For long-running projects with persistent task memory:
+
+```bash
+# 1. Initialize Beads (one-time setup)
+bd init
+bd doctor  # Verify setup
+
+# 2. Create feature and generate tasks
+/speckit.specify Add payment processing with Stripe
+/speckit.plan
+/speckit.tasks
+/speckit.analyze  # Validate before creating Beads issues
+
+# 3. Create epic for this feature
+bd create "Payment Processing" --type epic --priority P1
+# Note the epic ID, e.g., speckit-abc123
+
+# 4. Bulk import tasks to Beads
+./.specify/scripts/bash/create-beads-issues.sh specs/001-payment-processing/tasks.md speckit-abc123
+
+# 5. Link Beads IDs back to tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/001-payment-processing/tasks.md
+
+# 6. Drive implementation from Beads
+bd ready                              # Show tasks ready to work on
+bd update speckit-abc123.1 --status in-progress
+# ... implement the task ...
+bd update speckit-abc123.1 --status done
+
+# 7. Continue with next ready task
+bd ready
+```
+
+**Why Beads?** Provides persistent memory across sessions, survives context limits, and enables long-running AI-assisted projects.
 
 ## Task Organization
 
@@ -477,6 +519,36 @@ Run diagnostics:
 ### Tasks Not Executing in Order
 - Sequential tasks: NO `[P]` marker
 - Parallel tasks: Include `[P]` marker
+
+### Beads Bulk Import Issues
+
+**Problem**: `bd create --file` segfaults with markdown files
+
+**Solution**: Use the provided workaround scripts:
+
+```bash
+# 1. Create issues individually (workaround for segfault)
+./.specify/scripts/bash/create-beads-issues.sh specs/###-feature/tasks.md <epic-id>
+
+# 2. Link Beads IDs back to tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature/tasks.md
+```
+
+**What these scripts do**:
+- `create-beads-issues.sh`: Extracts tasks from tasks.md, creates Beads issues with intelligent priority/label detection, adds 0.1s delay between creates to avoid overwhelming the system
+- `update-tasks-with-beads-ids.sh`: Updates tasks.md to link each task with its Beads ID (converts `- [ ] T001` to `- [ ] (speckit-abc.1) T001`)
+
+Both scripts include validation, error handling, backup creation, and colored output for better UX.
+
+### Analyze Phase Warnings
+
+If `/speckit.analyze` reports missing requirements or inconsistencies:
+
+1. **Missing tasks for spec requirements**: Add tasks to tasks.md for uncovered requirements
+2. **Scope creep detected**: Remove tasks that don't align with spec.md
+3. **Graceful degradation tasks missing**: If constitution requires fallback strategies, ensure tasks.md includes error handling implementation
+
+Always run `/speckit.analyze` after generating tasks.md and before starting implementation.
 
 ## Contributing
 

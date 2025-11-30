@@ -269,3 +269,10 @@ For questions or issues:
 ## License
 
 MIT License - See LICENSE file for details.
+
+## Active Technologies
+- Python 3.11+ (backend), TypeScript 5.x/React 18 (frontend) + FastAPI 0.104+, SQLAlchemy 2.0, scikit-learn 1.3+, pandas 2.0+, React 18, React Query, Tailwind CSS (001-market-inventory-predictor)
+- PostgreSQL 15+ (primary database), Redis 7+ (caching, session storage) (001-market-inventory-predictor)
+
+## Recent Changes
+- 001-market-inventory-predictor: Added Python 3.11+ (backend), TypeScript 5.x/React 18 (frontend) + FastAPI 0.104+, SQLAlchemy 2.0, scikit-learn 1.3+, pandas 2.0+, React 18, React Query, Tailwind CSS
