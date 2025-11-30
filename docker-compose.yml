@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: marketprep-postgres
+    environment:
+      POSTGRES_DB: marketprep_dev
+      POSTGRES_USER: marketprep
+      POSTGRES_PASSWORD: devpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketprep"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - marketprep-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: marketprep-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - marketprep-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marketprep-backend
+    environment:
+      # Database
+      DATABASE_URL: postgresql://marketprep:devpassword@postgres:5432/marketprep_dev
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      # Application
+      ENVIRONMENT: development
+      DEBUG: "true"
+      LOG_LEVEL: INFO
+      # Security
+      SECRET_KEY: dev-secret-key-change-in-production-min32chars
+      ENCRYPTION_KEY: dev-encryption-key-32-bytes-minimum-length
+      # APIs (add your keys here)
+      SQUARE_APPLICATION_ID: ${SQUARE_APPLICATION_ID:-}
+      SQUARE_APPLICATION_SECRET: ${SQUARE_APPLICATION_SECRET:-}
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+      EVENTBRITE_API_KEY: ${EVENTBRITE_API_KEY:-}
+      # CORS
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - marketprep-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: marketprep-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - marketprep-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  marketprep-network:
+    driver: bridge

@@ -1,0 +1,743 @@
+openapi: 3.1.0
+info:
+  title: MarketPrep API
+  version: 1.0.0
+  description: |
+    MarketPrep API provides AI-powered inventory predictions for farmers market vendors.
+
+    **Authentication**: All endpoints (except /auth/*) require JWT Bearer token in Authorization header.
+
+    **Multi-tenancy**: All data is automatically scoped to the authenticated vendor (tenant isolation via RLS).
+  contact:
+    name: MarketPrep Support
+    email: support@marketprep.example.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.marketprep.example.com/api/v1
+    description: Production server
+  - url: https://staging-api.marketprep.example.com/api/v1
+    description: Staging server
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Authentication
+    description: OAuth2 and session management
+  - name: Recommendations
+    description: Load-out predictions for market appearances
+  - name: Vendors
+    description: Vendor profile and settings
+  - name: Venues
+    description: Market location management
+  - name: Products
+    description: Product catalog management
+  - name: Sync
+    description: Square POS data synchronization
+  - name: Feedback
+    description: Actual sales feedback for model improvement
+
+paths:
+  # ==================== Authentication ====================
+  /auth/square/connect:
+    post:
+      tags: [Authentication]
+      summary: Initiate Square OAuth connection
+      description: Redirects vendor to Square's OAuth authorization page
+      operationId: connectSquare
+      security: []  # No auth required for initial connection
+      responses:
+        '302':
+          description: Redirect to Square OAuth page
+          headers:
+            Location:
+              schema:
+                type: string
+                example: https://connect.squareup.com/oauth2/authorize?client_id=...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/square/callback:
+    get:
+      tags: [Authentication]
+      summary: Square OAuth callback
+      description: Handles Square OAuth callback after vendor authorizes
+      operationId: squareCallback
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from Square
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: CSRF protection state parameter
+      responses:
+        '200':
+          description: Successfully connected Square account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Square account connected successfully
+                  vendor_id:
+                    type: string
+                    format: uuid
+                  square_merchant_id:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Vendor login
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== Recommendations ====================
+  /recommendations/{venue_id}/{date}:
+    get:
+      tags: [Recommendations]
+      summary: Get load-out recommendations for a market appearance
+      description: |
+        Returns AI-generated product quantity recommendations for a specific venue and date.
+        Includes weather forecast, local events, and confidence scores.
+      operationId: getRecommendations
+      parameters:
+        - $ref: '#/components/parameters/VenueId'
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Market date (YYYY-MM-DD)
+          example: '2025-12-15'
+      responses:
+        '200':
+          description: Recommendations generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /recommendations/{appearance_id}/feedback:
+    post:
+      tags: [Feedback]
+      summary: Submit actual sales for a completed market appearance
+      description: Vendor provides actual quantities sold to improve future predictions
+      operationId: submitFeedback
+      parameters:
+        - name: appearance_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Market appearance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sales_data]
+              properties:
+                sales_data:
+                  type: array
+                  items:
+                    type: object
+                    required: [product_id, quantity_sold]
+                    properties:
+                      product_id:
+                        type: string
+                        format: uuid
+                      quantity_sold:
+                        type: number
+                        format: double
+                        minimum: 0
+                notes:
+                  type: string
+                  maxLength: 500
+                  description: Optional vendor notes about the market day
+      responses:
+        '200':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Feedback received. Prediction accuracy: 85%
+                  accuracy_score:
+                    type: number
+                    format: double
+                    description: Percentage of products predicted within 20% margin
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== Vendors ====================
+  /vendors/me:
+    get:
+      tags: [Vendors]
+      summary: Get current vendor profile
+      operationId: getVendorProfile
+      responses:
+        '200':
+          description: Vendor profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags: [Vendors]
+      summary: Update vendor profile
+      operationId: updateVendorProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business_name:
+                  type: string
+                  maxLength: 255
+                phone:
+                  type: string
+                  pattern: '^\+?[1-9]\d{1,14}$'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ==================== Venues ====================
+  /venues:
+    get:
+      tags: [Venues]
+      summary: List vendor's venues
+      operationId: listVenues
+      parameters:
+        - name: is_regular
+          in: query
+          schema:
+            type: boolean
+          description: Filter by regular attendance
+      responses:
+        '200':
+          description: Venues retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  venues:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Venue'
+                  total:
+                    type: integer
+
+    post:
+      tags: [Venues]
+      summary: Add a venue to vendor's list
+      operationId: addVenue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueCreate'
+      responses:
+        '201':
+          description: Venue added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Venue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          description: Subscription tier limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: MVP tier allows max 3 venues. Upgrade to multi-location tier.
+
+  /venues/{venue_id}:
+    get:
+      tags: [Venues]
+      summary: Get venue details
+      operationId: getVenue
+      parameters:
+        - $ref: '#/components/parameters/VenueId'
+      responses:
+        '200':
+          description: Venue retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Venue'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== Products ====================
+  /products:
+    get:
+      tags: [Products]
+      summary: List vendor's product catalog
+      operationId: listProducts
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [baked_goods, produce, prepared_foods, dairy, meat, other]
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Products retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+
+  # ==================== Sync ====================
+  /sync/square:
+    post:
+      tags: [Sync]
+      summary: Trigger manual Square POS sync
+      description: Manually fetch latest sales data and catalog from Square (normally runs daily)
+      operationId: triggerSquareSync
+      responses:
+        '202':
+          description: Sync initiated (background job)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Square sync initiated
+                  job_id:
+                    type: string
+                    format: uuid
+                    description: Celery task ID for status tracking
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          description: Sync rate limited (max once per hour)
+
+  /sync/square/status:
+    get:
+      tags: [Sync]
+      summary: Get Square sync status
+      operationId: getSquareSyncStatus
+      responses:
+        '200':
+          description: Sync status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_sync_at:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+                    enum: [idle, syncing, error]
+                  products_synced:
+                    type: integer
+                  transactions_synced:
+                    type: integer
+                  error_message:
+                    type: string
+                    nullable: true
+
+  # ==================== Health ====================
+  /health:
+    get:
+      tags: [System]
+      summary: Health check endpoint
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+
+# ==================== Components ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    VenueId:
+      name: venue_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Venue UUID
+
+  schemas:
+    AuthTokens:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token (15 min TTL)
+        refresh_token:
+          type: string
+          description: Refresh token (7 day TTL)
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Access token expiration in seconds
+          example: 900
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        business_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        subscription_tier:
+          type: string
+          enum: [mvp, multi_location]
+        subscription_status:
+          type: string
+          enum: [trial, active, suspended, cancelled]
+        square_connected:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Venue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address_line1:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+        postal_code:
+          type: string
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        operating_schedule:
+          type: object
+          nullable: true
+        is_regular:
+          type: boolean
+          description: Vendor attends regularly
+
+    VenueCreate:
+      type: object
+      required: [name, address_line1, city, state, postal_code]
+      properties:
+        name:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+        postal_code:
+          type: string
+        is_regular:
+          type: boolean
+          default: true
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          type: string
+          enum: [baked_goods, produce, prepared_foods, dairy, meat, other]
+        unit_type:
+          type: string
+          example: dozen
+        typical_price:
+          type: number
+          format: double
+          nullable: true
+        is_seasonal:
+          type: boolean
+        is_active:
+          type: boolean
+
+    RecommendationResponse:
+      type: object
+      properties:
+        market_appearance_id:
+          type: string
+          format: uuid
+        venue:
+          $ref: '#/components/schemas/Venue'
+        date:
+          type: string
+          format: date
+        weather_forecast:
+          type: object
+          properties:
+            condition:
+              type: string
+              example: partly_cloudy
+            temp_high:
+              type: number
+              format: double
+            temp_low:
+              type: number
+              format: double
+            precip_prob:
+              type: integer
+              minimum: 0
+              maximum: 100
+        local_events:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              distance_miles:
+                type: number
+                format: double
+        recommendations:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: string
+                format: uuid
+              product_name:
+                type: string
+              recommended_quantity:
+                type: number
+                format: double
+              unit_type:
+                type: string
+              confidence_score:
+                type: number
+                format: double
+                minimum: 0
+                maximum: 1
+              reasoning_factors:
+                type: object
+                description: Explanation of prediction
+        generated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: ValidationError
+            message: Invalid date format
+
+    Unauthorized:
+      description: Authentication required or failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+            message: Invalid or expired token
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: NotFound
+            message: Venue not found
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: RateLimitExceeded
+            message: Max 100 requests per minute
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+            description: Unix timestamp when limit resets
