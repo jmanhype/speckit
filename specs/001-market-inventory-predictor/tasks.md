@@ -457,10 +457,10 @@ Per plan.md: Web application structure
 
 ### Performance Optimization
 
-- [ ] (speckit-mw9.187) T160 [P] Implement database query optimization and indexing
+- [X] (speckit-mw9.187) T160 [P] Implement database query optimization and indexing
 - [ ] (speckit-mw9.188) T161 [P] Add frontend bundle size optimization
-- [ ] (speckit-mw9.189) T162 [P] Implement Redis caching for product catalog
-- [ ] (speckit-mw9.190) T163 [P] Add API response compression
+- [X] (speckit-mw9.189) T162 [P] Implement Redis caching for product catalog
+- [X] (speckit-mw9.190) T163 [P] Add API response compression
 
 ### Graceful Degradation (Constitution §VII)
 
