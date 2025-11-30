@@ -29,6 +29,49 @@ This directory contains Claude Code configuration for the Spec Kit framework.
 └── README.md               # This file
 ```
 
+## Project Root Files
+
+In addition to the `.claude/` directory, Claude Code uses these project root files:
+
+| File | Purpose | Git Status |
+|------|---------|------------|
+| `CLAUDE.md` | Project context and instructions | Tracked |
+| `CLAUDE.local.md` | Personal overrides | Gitignored |
+| `.mcp.json` | Project-scoped MCP servers | Tracked |
+
+### CLAUDE.md vs .claude/
+
+- **CLAUDE.md** (root): Project memory and instructions for Claude
+- **.claude/** (directory): Configuration, commands, skills, etc.
+
+Both work together. CLAUDE.md provides context; .claude/ provides tools.
+
+### .mcp.json
+
+For team-shared MCP servers, create `.mcp.json` in project root:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-memory"]
+    }
+  }
+}
+```
+
+See `.mcp.json.example` for a complete template.
+
+Enable in settings:
+```json
+{
+  "enableAllProjectMcpServers": true
+}
+```
+
+---
+
 ## Settings Hierarchy
 
 Settings are applied in order of precedence (highest to lowest):
