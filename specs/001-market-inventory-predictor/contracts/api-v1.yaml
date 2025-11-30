@@ -214,80 +214,50 @@ paths:
           $ref: '#/components/responses/Unauthorized'
 
   # ==================== Recommendations ====================
-  /recommendations/{venue_id}/{date}:
-    get:
-      tags: [Recommendations]
-      summary: Get load-out recommendations for a market appearance
-      description: |
-        Returns AI-generated product quantity recommendations for a specific venue and date.
-        Includes weather forecast, local events, and confidence scores.
-      operationId: getRecommendations
-      parameters:
-        - $ref: '#/components/parameters/VenueId'
-        - name: date
-          in: path
-          required: true
-          schema:
-            type: string
-            format: date
-          description: Market date (YYYY-MM-DD)
-          example: '2025-12-15'
-      responses:
-        '200':
-          description: Recommendations generated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RecommendationResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/RateLimitExceeded'
-
-  /recommendations/{appearance_id}/feedback:
+  /recommendations/generate:
     post:
-      tags: [Feedback]
-      summary: Submit actual sales for a completed market appearance
-      description: Vendor provides actual quantities sold to improve future predictions
-      operationId: submitFeedback
-      parameters:
-        - name: appearance_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Market appearance ID
+      tags: [Recommendations]
+      summary: Generate AI recommendations for a market date
+      description: |
+        Triggers ML model to generate product quantity recommendations.
+        Fetches weather forecast, queries local events, and runs prediction model.
+      operationId: generateRecommendations
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [sales_data]
+              required: [market_date]
               properties:
-                sales_data:
-                  type: array
-                  items:
-                    type: object
-                    required: [product_id, quantity_sold]
-                    properties:
-                      product_id:
-                        type: string
-                        format: uuid
-                      quantity_sold:
-                        type: number
-                        format: double
-                        minimum: 0
-                notes:
+                market_date:
                   type: string
-                  maxLength: 500
-                  description: Optional vendor notes about the market day
+                  format: date
+                  description: Market date (ISO format YYYY-MM-DD)
+                  example: '2025-12-15'
+                latitude:
+                  type: number
+                  format: double
+                  nullable: true
+                  description: Market location latitude (for weather)
+                longitude:
+                  type: number
+                  format: double
+                  nullable: true
+                  description: Market location longitude (for weather)
+                venue_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: Optional venue UUID
+            example:
+              market_date: '2025-12-15'
+              latitude: 40.7128
+              longitude: -74.0060
+              venue_id: '123e4567-e89b-12d3-a456-426614174000'
       responses:
         '200':
-          description: Feedback submitted successfully
+          description: Recommendations generated successfully
           content:
             application/json:
               schema:
@@ -295,13 +265,103 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Feedback received. Prediction accuracy: 85%
-                  accuracy_score:
-                    type: number
-                    format: double
-                    description: Percentage of products predicted within 20% margin
+                    example: Recommendations generated successfully
+                  count:
+                    type: integer
+                    description: Number of recommendations created
+                  market_date:
+                    type: string
+                    format: date
         '400':
           $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /recommendations:
+    get:
+      tags: [Recommendations]
+      summary: List recommendations
+      description: |
+        Retrieve generated recommendations with optional filtering.
+        Returns recommendations for upcoming market dates.
+      operationId: listRecommendations
+      parameters:
+        - name: market_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by specific market date
+        - name: days_ahead
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+            default: 7
+          description: Show recommendations for next N days
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 100
+            default: 20
+          description: Maximum recommendations to return
+      responses:
+        '200':
+          description: Recommendations retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecommendationItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /recommendations/{recommendation_id}/feedback:
+    put:
+      tags: [Recommendations, Feedback]
+      summary: Update recommendation feedback
+      description: Provide actual quantities brought to improve future predictions
+      operationId: updateRecommendationFeedback
+      parameters:
+        - name: recommendation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Recommendation UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accepted]
+              properties:
+                accepted:
+                  type: boolean
+                  description: Whether vendor followed this recommendation
+                actual_quantity:
+                  type: integer
+                  nullable: true
+                  description: Actual quantity brought to market
+            example:
+              accepted: true
+              actual_quantity: 8
+      responses:
+        '200':
+          description: Feedback updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Feedback updated successfully
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -669,6 +729,84 @@ components:
           type: boolean
         is_active:
           type: boolean
+
+    RecommendationItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        market_date:
+          type: string
+          format: date
+        product:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            price:
+              type: number
+              format: double
+            category:
+              type: string
+              nullable: true
+        recommended_quantity:
+          type: integer
+        confidence_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        confidence_level:
+          type: string
+          enum: [low, medium, high]
+          description: Categorical confidence level
+        predicted_revenue:
+          type: number
+          format: double
+          nullable: true
+        weather_data:
+          type: object
+          nullable: true
+          properties:
+            condition:
+              type: string
+              nullable: true
+            temp_f:
+              type: number
+              format: double
+              nullable: true
+            feels_like_f:
+              type: number
+              format: double
+              nullable: true
+            humidity:
+              type: number
+              format: double
+              nullable: true
+            description:
+              type: string
+              nullable: true
+        is_special_event:
+          type: boolean
+          description: Whether a special local event is happening
+        venue_id:
+          type: string
+          format: uuid
+          nullable: true
+        venue_name:
+          type: string
+          nullable: true
+        is_seasonal:
+          type: boolean
+          nullable: true
+          description: Whether product is seasonal
+        generated_at:
+          type: string
+          format: date-time
 
     RecommendationResponse:
       type: object
