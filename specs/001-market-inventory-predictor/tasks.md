@@ -415,36 +415,36 @@ Per plan.md: Web application structure
 ### Compliance & Audit Trail (Constitution §IV)
 
 - [ ] (speckit-mw9.195) T180 [P] Write unit tests for audit log service in backend/tests/unit/test_audit_service.py
-- [ ] (speckit-mw9.196) T181 [P] Implement immutable audit log service with hash-chain verification in backend/src/services/audit_service.py
-- [ ] (speckit-mw9.197) T182 Create AuditLog model with hash_chain field in backend/src/models/audit_log.py
-- [ ] (speckit-mw9.198) T183 Generate Alembic migration for audit_logs table with hash indexes
+- [X] (speckit-mw9.196) T181 [P] Implement immutable audit log service with hash-chain verification in backend/src/services/audit_service.py
+- [X] (speckit-mw9.197) T182 Create AuditLog model with hash_chain field in backend/src/models/audit_log.py
+- [X] (speckit-mw9.198) T183 Generate Alembic migration for audit_logs table with hash indexes
 - [ ] (speckit-mw9.199) T184 [P] Implement WORM storage adapter for S3 Object Lock in backend/src/adapters/worm_storage_adapter.py
 - [ ] (speckit-mw9.200) T185 Implement audit trail middleware to log all API requests in backend/src/api/middleware/audit.py
 - [ ] (speckit-mw9.201) T186 [P] Implement GET /audit/verify endpoint for hash-chain verification in backend/src/api/v1/audit.py
-- [ ] (speckit-mw9.202) T187 [P] Write integration tests for audit trail completeness in backend/tests/integration/test_audit_trail.py
+- [X] (speckit-mw9.202) T187 [P] Write integration tests for audit trail completeness in backend/tests/integration/test_audit_trail.py
 
 ### GDPR Compliance (Constitution §IV)
 
-- [ ] (speckit-mw9.203) T188 [P] Write integration tests for GDPR data export in backend/tests/integration/test_gdpr_export.py
-- [ ] (speckit-mw9.204) T189 Implement data export service (all vendor data in JSON) in backend/src/services/data_export_service.py
-- [ ] (speckit-mw9.205) T190 Implement GET /vendors/me/data-export (GDPR right to access) in backend/src/api/v1/vendors.py
+- [X] (speckit-mw9.203) T188 [P] Write integration tests for GDPR data export in backend/tests/integration/test_gdpr_export.py
+- [X] (speckit-mw9.204) T189 Implement data export service (all vendor data in JSON) in backend/src/services/gdpr_service.py (export_user_data method)
+- [X] (speckit-mw9.205) T190 Implement GET /vendors/me/data-export (GDPR right to access) in backend/src/routers/vendors.py
 - [ ] (speckit-mw9.206) T191 [P] Create data export UI component in frontend/src/components/features/settings/DataExport.tsx
-- [ ] (speckit-mw9.207) T192 [P] Write integration tests for GDPR deletion in backend/tests/integration/test_gdpr_deletion.py
-- [ ] (speckit-mw9.208) T193 Implement data deletion service with cascade verification in backend/src/services/data_deletion_service.py
-- [ ] (speckit-mw9.209) T194 Implement DELETE /vendors/me (GDPR right to deletion) in backend/src/api/v1/vendors.py
+- [X] (speckit-mw9.207) T192 [P] Write integration tests for GDPR deletion in backend/tests/integration/test_gdpr_deletion.py
+- [X] (speckit-mw9.208) T193 Implement data deletion service with cascade verification in backend/src/services/gdpr_service.py (delete_user_data method)
+- [X] (speckit-mw9.209) T194 Implement DELETE /vendors/me (GDPR right to deletion) in backend/src/routers/vendors.py
 - [ ] (speckit-mw9.210) T195 [P] Create account deletion UI with confirmation in frontend/src/components/features/settings/DeleteAccount.tsx
-- [ ] (speckit-mw9.211) T196 Implement data portability export (machine-readable JSON) in backend/src/services/data_export_service.py
+- [X] (speckit-mw9.211) T196 Implement data portability export (machine-readable JSON) in backend/src/services/gdpr_service.py (same as T189)
 - [ ] (speckit-mw9.212) T197 [P] Write contract tests for complete data deletion verification in backend/tests/contract/test_deletion_verification.py
 
 ### Data Retention Policy Enforcement
 
 - [ ] (speckit-mw9.213) T198 [P] Write unit tests for retention policy service in backend/tests/unit/test_retention_policy.py
-- [ ] (speckit-mw9.214) T199 Create RetentionPolicy model with configurable periods per tenant in backend/src/models/retention_policy.py
-- [ ] (speckit-mw9.215) T200 Generate migration for retention_policies table
-- [ ] (speckit-mw9.216) T201 Implement retention policy service in backend/src/services/retention_policy_service.py
-- [ ] (speckit-mw9.217) T202 Implement Celery task for automated data archival/deletion in backend/src/tasks/data_retention.py
-- [ ] (speckit-mw9.218) T203 [P] Add retention policy configuration UI in frontend/src/components/features/settings/RetentionPolicy.tsx
-- [ ] (speckit-mw9.219) T204 Add data retention beat schedule (monthly) to Celery worker in backend/src/tasks/worker.py
+- [X] (speckit-mw9.214) T199 Create RetentionPolicy model with configurable periods per tenant in backend/src/models/gdpr_compliance.py (DataRetentionPolicy)
+- [X] (speckit-mw9.215) T200 Generate migration for retention_policies table (in migration 010_audit_gdpr_compliance.py)
+- [X] (speckit-mw9.216) T201 Implement retention policy service in backend/src/services/retention_policy_service.py
+- [X] (speckit-mw9.217) T202 Implement Celery task for automated data archival/deletion in backend/src/tasks/data_retention.py
+- [X] (speckit-mw9.218) T203 [P] Add retention policy configuration UI in frontend/src/components/features/settings/RetentionPolicy.tsx
+- [X] (speckit-mw9.219) T204 Add data retention beat schedule (monthly) to Celery worker in backend/src/tasks/worker.py
 
 ### Documentation & Deployment
 
@@ -473,7 +473,7 @@ Per plan.md: Web application structure
 ### Production Readiness
 
 - [ ] (speckit-mw9.10) T173 [P] Implement prediction accuracy tracking system for SC-002 (70% within 20% margin) in backend/src/services/prediction_service.py
-- [ ] (speckit-mw9.11) T174 [P] Add load testing for 1000 concurrent users (SC-007) using k6 or Locust in tests/load/
+- [X] (speckit-mw9.11) T174 [P] Add load testing for 1000 concurrent users (SC-007) using k6 or Locust in backend/tests/load/locustfile.py
 - [ ] (speckit-mw9.12) T175 [P] Implement user metrics collection for SC-003, SC-008, SC-012 in backend/src/services/analytics_service.py
 
 ### Quality Assurance
