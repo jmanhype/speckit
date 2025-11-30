@@ -428,11 +428,11 @@ Per plan.md: Web application structure
 - [X] (speckit-mw9.203) T188 [P] Write integration tests for GDPR data export in backend/tests/integration/test_gdpr_export.py
 - [X] (speckit-mw9.204) T189 Implement data export service (all vendor data in JSON) in backend/src/services/gdpr_service.py (export_user_data method)
 - [X] (speckit-mw9.205) T190 Implement GET /vendors/me/data-export (GDPR right to access) in backend/src/routers/vendors.py
-- [ ] (speckit-mw9.206) T191 [P] Create data export UI component in frontend/src/components/features/settings/DataExport.tsx
+- [X] (speckit-mw9.206) T191 [P] Create data export UI component in frontend/src/components/features/settings/DataExport.tsx
 - [X] (speckit-mw9.207) T192 [P] Write integration tests for GDPR deletion in backend/tests/integration/test_gdpr_deletion.py
 - [X] (speckit-mw9.208) T193 Implement data deletion service with cascade verification in backend/src/services/gdpr_service.py (delete_user_data method)
 - [X] (speckit-mw9.209) T194 Implement DELETE /vendors/me (GDPR right to deletion) in backend/src/routers/vendors.py
-- [ ] (speckit-mw9.210) T195 [P] Create account deletion UI with confirmation in frontend/src/components/features/settings/DeleteAccount.tsx
+- [X] (speckit-mw9.210) T195 [P] Create account deletion UI with confirmation in frontend/src/components/features/settings/DeleteAccount.tsx
 - [X] (speckit-mw9.211) T196 Implement data portability export (machine-readable JSON) in backend/src/services/gdpr_service.py (same as T189)
 - [ ] (speckit-mw9.212) T197 [P] Write contract tests for complete data deletion verification in backend/tests/contract/test_deletion_verification.py
 
