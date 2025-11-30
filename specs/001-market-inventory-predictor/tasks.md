@@ -400,10 +400,10 @@ Per plan.md: Web application structure
 
 ### Monitoring & Observability
 
-- [ ] (speckit-mw9.173) T146 [P] Setup Prometheus metrics collection in backend/src/utils/metrics.py
-- [ ] (speckit-mw9.174) T147 [P] Implement OpenTelemetry tracing in backend/src/utils/tracing.py
-- [ ] (speckit-mw9.175) T148 [P] Setup structured logging with correlation IDs in backend/src/utils/logger.py
-- [ ] (speckit-mw9.176) T149 [P] Create error tracking integration (Sentry) in backend/src/utils/error_tracking.py
+- [X] (speckit-mw9.173) T146 [P] Setup Prometheus metrics collection in backend/src/utils/metrics.py
+- [X] (speckit-mw9.174) T147 [P] Implement OpenTelemetry tracing in backend/src/utils/tracing.py
+- [X] (speckit-mw9.175) T148 [P] Setup structured logging with correlation IDs in backend/src/utils/logger.py
+- [X] (speckit-mw9.176) T149 [P] Create error tracking integration (Sentry) in backend/src/utils/error_tracking.py
 
 ### Security Hardening
 
@@ -458,7 +458,7 @@ Per plan.md: Web application structure
 ### Performance Optimization
 
 - [X] (speckit-mw9.187) T160 [P] Implement database query optimization and indexing
-- [ ] (speckit-mw9.188) T161 [P] Add frontend bundle size optimization
+- [X] (speckit-mw9.188) T161 [P] Add frontend bundle size optimization
 - [X] (speckit-mw9.189) T162 [P] Implement Redis caching for product catalog
 - [X] (speckit-mw9.190) T163 [P] Add API response compression
 

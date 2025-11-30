@@ -64,14 +64,75 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    // Enable source maps for production debugging (disable if bundle size is critical)
     sourcemap: true,
+    // Chunk size warnings (in kB)
+    chunkSizeWarningLimit: 500,
+    // Enable minification
+    minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
+        // Manual chunks for optimal code splitting
+        manualChunks: (id) => {
+          // Core vendor libraries
+          if (id.includes('node_modules')) {
+            // React ecosystem
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            // React Router
+            if (id.includes('react-router')) {
+              return 'vendor-router';
+            }
+            // React Query
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query';
+            }
+            // Date utilities
+            if (id.includes('date-fns')) {
+              return 'vendor-date';
+            }
+            // State management
+            if (id.includes('zustand')) {
+              return 'vendor-state';
+            }
+            // HTTP client
+            if (id.includes('axios')) {
+              return 'vendor-http';
+            }
+            // All other node_modules
+            return 'vendor-misc';
+          }
+
+          // Feature-based code splitting
+          if (id.includes('/pages/')) {
+            // Extract page name from path
+            const match = id.match(/\/pages\/(\w+)/);
+            if (match) {
+              return `page-${match[1].toLowerCase()}`;
+            }
+          }
+
+          // Component bundles
+          if (id.includes('/components/features/')) {
+            return 'features';
+          }
         },
+        // Optimize chunk file names
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+          return `assets/js/[name]-[hash].js`;
+        },
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
+    },
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Optimize dependencies
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
     },
   },
   test: {
