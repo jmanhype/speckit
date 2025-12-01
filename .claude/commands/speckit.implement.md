@@ -14,13 +14,27 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Verify consistency validation** (IMPORTANT):
+2. **MANDATORY: Run Phase Gate** before starting implementation:
+   ```bash
+   ./.claude/hooks/phase-gate.sh tasks implement
+   ```
+   - This ensures all existing tests pass before implementation begins
+   - If the gate fails, **STOP** and fix issues before proceeding
+   - Display the gate output to the user
+
+3. **Verify consistency validation** (IMPORTANT):
    - Check if the user has run `/speckit.analyze` to validate consistency between spec.md, plan.md, and tasks.md
    - If there's no evidence of analyze having been run (ask user or check conversation history), **recommend** running `/speckit.analyze` first
    - **Why this matters**: Analyze catches missing requirements, scope creep, and graceful degradation gaps before implementation begins
    - However, do NOT block implementation if user chooses to proceed without analyze
 
-3. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
+4. **Check Linear sync status** (if Linear integration configured):
+   - Check for `.specify/linear-mapping.json`
+   - If exists, display current sync status
+   - Suggest running `/speckit.linear.sync --from-linear` to pull latest status
+   - Continue with implementation regardless
+
+5. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
    - For each checklist, count:
      - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
@@ -45,13 +59,13 @@ You **MUST** consider the user input before proceeding (if not empty).
      - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
      - Wait for user response before continuing
      - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 4
+     - If user says "yes" or "proceed" or "continue", proceed to step 6
 
    - **If all checklists are complete**:
      - Display the table showing all checklists passed
-     - Automatically proceed to step 4
+     - Automatically proceed to step 6
 
-4. Load and analyze the implementation context:
+6. Load and analyze the implementation context:
    - **REQUIRED**: Read tasks.md for the complete task list and execution plan
    - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
    - **IF EXISTS**: Read data-model.md for entities and relationships
@@ -59,7 +73,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
-5. **Project Setup Verification**:
+7. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
    **Detection & Creation Logic**:
@@ -103,55 +117,91 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
    - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
 
-6. Parse tasks.md structure and extract:
+8. Parse tasks.md structure and extract:
    - **Task phases**: Setup, Tests, Core, Integration, Polish
    - **Task dependencies**: Sequential vs parallel execution rules
    - **Task details**: ID, description, file paths, parallel markers [P]
    - **Execution flow**: Order and dependency requirements
+   - **Linear IDs**: Extract any `<!-- LINEAR:TEAM-XXX -->` markers
 
-7. Execute implementation following the task plan:
+9. Execute implementation following the task plan:
    - **Phase-by-phase execution**: Complete each phase before moving to the next
    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
    - **File-based coordination**: Tasks affecting the same files must run sequentially
    - **Validation checkpoints**: Verify each phase completion before proceeding
 
-8. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
+10. Implementation execution rules:
+    - **Setup first**: Initialize project structure, dependencies, configuration
+    - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
+    - **Core development**: Implement models, services, CLI commands, endpoints
+    - **Integration work**: Database connections, middleware, logging, external services
+    - **Polish and validation**: Unit tests, performance optimization, documentation
 
-9. Progress tracking and error handling:
-   - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
-   - Provide clear error messages with context for debugging
-   - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+11. Progress tracking and error handling:
+    - Report progress after each completed task
+    - Halt execution if any non-parallel task fails
+    - For parallel tasks [P], continue with successful tasks, report failed ones
+    - Provide clear error messages with context for debugging
+    - Suggest next steps if implementation cannot proceed
+    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-10. **Test Pass Gate (MANDATORY)** - After EACH task:
-    - Run relevant unit tests for the code touched
-    - **100% pass rate required** - ALL tests must pass
-    - If ANY test fails:
+12. **TEST GATE (MANDATORY)** - After EACH task:
+
+    **Requirements**:
+    - 100% unit tests passing
+    - 100% integration tests passing (if applicable)
+    - 100% smoke tests passing (if applicable)
+    - 100% code coverage (configurable via SPECKIT_COVERAGE_THRESHOLD)
+
+    **After each task**:
+    - The PostToolUse hook automatically runs `.claude/hooks/test-gate.sh`
+    - If gate fails:
       - **DO NOT mark task complete**
       - **DO NOT proceed to next task**
       - Fix the failing test/code first
       - Re-run tests until 100% pass
-    - After each user story completes:
-      - Run integration tests for that story
-      - **100% pass rate required**
-    - Before marking feature complete:
-      - Run FULL test suite (unit + integration + smoke)
-      - **100% pass rate required**
-      - Any regression = STOP and fix
 
-11. Completion validation:
+    **After each user story completes**:
+    - Run integration tests for that story explicitly
+    - Verify 100% pass rate
+
+    **After each phase completes**:
+    - Run full test suite (unit + integration + smoke)
+    - Verify coverage meets threshold
+    - Any regression = STOP and fix
+
+    **Before marking feature complete**:
+    - Run: `./.claude/hooks/phase-gate.sh implement complete`
+    - This runs the FULL test suite with coverage check
+    - ALL tests must pass at 100%
+    - Coverage must meet threshold (default 100%)
+
+13. **Linear Sync** (if configured):
+    - After each task completion, if Linear mapping exists:
+      - Update task status in tasks.md with `[x]`
+      - Optionally sync to Linear (suggest `/speckit.linear.sync`)
+    - At feature completion, push final status to Linear
+
+14. Completion validation:
     - Verify all required tasks are completed
     - Check that implemented features match the original specification
     - Validate that tests pass and coverage meets requirements
     - Confirm the implementation follows the technical plan
     - Report final status with summary of completed work
+    - Display final test gate status:
+      ```
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      ✅ IMPLEMENTATION COMPLETE
+
+         Tasks:       12/12 complete
+         Unit Tests:  ✓ 100% pass
+         Integration: ✓ 100% pass
+         Smoke Tests: ✓ 100% pass
+         Coverage:    ✓ 100%
+
+         Linear: TEAM-123 (synced)
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      ```
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.

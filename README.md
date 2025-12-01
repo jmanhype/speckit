@@ -134,6 +134,70 @@ For the complete experience with persistent memory:
    # Agent will automatically integrate with Beads
    ```
 
+### Linear Integration Setup
+
+To use Spec Kit with your Linear backlog:
+
+1. **Get Linear API Key**:
+   - Go to `linear.app/YOUR-TEAM/settings/api`
+   - Create a new API key with appropriate permissions
+
+2. **Configure Linear MCP Server**:
+
+   **Option A: Use the official Linear MCP (OAuth)**:
+   ```json
+   // In .claude/settings.local.json
+   {
+     "mcpServers": {
+       "linear": {
+         "url": "https://mcp.linear.app/sse",
+         "transport": "sse"
+       }
+     }
+   }
+   ```
+
+   **Option B: Use community package (API Key)**:
+   ```bash
+   # Copy the example config
+   cp .mcp.json.linear-example .mcp.json
+
+   # Set your API key
+   export LINEAR_API_KEY=lin_api_xxx
+   ```
+
+3. **Enable project MCP servers** in `.claude/settings.json`:
+   ```json
+   {
+     "enableAllProjectMcpServers": true
+   }
+   ```
+
+4. **Test the integration**:
+   ```bash
+   # In Claude Code
+   /speckit.linear.import TEAM-123
+   ```
+
+#### Linear Workflow
+
+```bash
+# 1. Import from Linear backlog
+/speckit.linear.import TEAM-123
+
+# 2. Run normal Spec Kit workflow
+/speckit.clarify
+/speckit.plan
+/speckit.tasks
+
+# 3. Export tasks back to Linear as sub-issues
+/speckit.linear.export
+
+# 4. Implement with bidirectional sync
+/speckit.implement
+/speckit.linear.sync --bidirectional
+```
+
 ### Brownfield Repos (Existing Projects)
 
 For projects with existing code, tests, and conventions:
@@ -447,6 +511,50 @@ Create or update project constitution (architectural principles).
 
 #### `/speckit.taskstoissues`
 Convert tasks.md into GitHub issues with dependencies.
+
+### Linear Integration Commands
+
+#### `/speckit.linear.import <issue-id>`
+Import a Linear issue as a new Spec Kit feature specification.
+
+**What it does**:
+- Fetches issue from Linear via MCP
+- Creates feature directory and spec.md
+- Maps Linear fields to spec sections
+- Adds bidirectional link (comment on Linear issue)
+
+**Example**:
+```
+/speckit.linear.import TEAM-123
+```
+
+#### `/speckit.linear.export [issue-id]`
+Export tasks.md as Linear sub-issues linked to a parent issue.
+
+**What it does**:
+- Parses tasks.md and creates Linear sub-issues
+- Sets priority, labels, and parent relationship
+- Creates `.specify/linear-mapping.json` for tracking
+- Updates tasks.md with Linear IDs
+
+**Example**:
+```
+/speckit.linear.export TEAM-123
+```
+
+#### `/speckit.linear.sync [options]`
+Synchronize status between tasks.md and Linear issues.
+
+**Options**:
+- `--to-linear` - Push local status to Linear (default)
+- `--from-linear` - Pull Linear status to local
+- `--bidirectional` - Two-way sync (Linear wins conflicts)
+- `--dry-run` - Show changes without applying
+
+**Example**:
+```
+/speckit.linear.sync --bidirectional
+```
 
 ## Setup
 
