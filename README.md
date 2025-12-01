@@ -119,6 +119,122 @@ For the complete experience with persistent memory:
    # Agent will automatically integrate with Beads
    ```
 
+### Brownfield Repos (Existing Projects)
+
+For projects with existing code, tests, and conventions:
+
+#### 1. Install Spec Kit (same as above)
+
+```bash
+cd your-existing-project
+
+# Copy framework files
+cp -r /path/to/speckit/.specify ./
+cp -r /path/to/speckit/.claude ./
+chmod +x ./.claude/hooks/*.sh
+```
+
+#### 2. Bootstrap Your Constitution
+
+The constitution captures your project's existing decisions and constraints:
+
+```bash
+# In Claude Code
+/speckit.constitution
+```
+
+**Answer these prompts based on your existing codebase:**
+- What tech stack is already in use? (languages, frameworks, databases)
+- What testing patterns exist? (Jest, pytest, existing test commands)
+- What architectural patterns are established? (MVC, Clean Architecture, etc.)
+- What CI/CD pipeline is in place?
+- What coding standards are enforced? (linters, formatters, style guides)
+
+The constitution will be created at `.specify/memory/constitution.md`.
+
+#### 3. Document Existing Test Commands
+
+Update your constitution or `CLAUDE.md` with your actual test commands:
+
+```markdown
+## Existing Test Infrastructure
+
+**Run tests:**
+- Unit: `npm test` or `pytest tests/unit/`
+- Integration: `npm run test:integration` or `pytest tests/integration/`
+- All: `npm run test:all` or `pytest`
+
+**Coverage:** `npm run coverage` or `pytest --cov`
+```
+
+#### 4. Start with One Feature
+
+Don't try to spec your entire codebase. Pick ONE new feature:
+
+```bash
+# In Claude Code
+/speckit.specify Add password reset functionality
+```
+
+Spec Kit will:
+- Respect your existing code structure
+- Use your established patterns (from constitution)
+- Ensure 100% test pass rate (including existing tests)
+- Generate tasks that fit your project
+
+#### 5. Key Brownfield Considerations
+
+| Concern | How Spec Kit Handles It |
+|---------|------------------------|
+| **Existing tests** | 100% pass gate includes ALL existing tests (no regressions) |
+| **Existing patterns** | Constitution captures them; plan references them |
+| **Existing CI/CD** | Hook into existing pipelines; don't replace |
+| **Incremental adoption** | One feature at a time; no big bang |
+| **Legacy code** | Specs can include "refactor" user stories |
+
+#### 6. Example: Adding Feature to Django Project
+
+```bash
+# 1. Install Spec Kit
+cp -r /path/to/speckit/.specify ./
+cp -r /path/to/speckit/.claude ./
+chmod +x ./.claude/hooks/*.sh
+
+# 2. Bootstrap constitution (capture Django conventions)
+# /speckit.constitution → answers: Django 4.2, pytest-django, REST framework, etc.
+
+# 3. Specify new feature
+# /speckit.specify Add user notification preferences API
+
+# 4. Plan respects Django conventions
+# → Uses existing models.py, serializers.py, views.py patterns
+# → Tests go in existing tests/ structure
+# → Migrations use existing Alembic/Django setup
+
+# 5. Implement with test gate
+# Every task runs `pytest` → must pass 100%
+# Existing tests + new tests all green
+```
+
+#### 7. Gradual Constitution Evolution
+
+As you add features, your constitution grows:
+
+```markdown
+## Recent Decisions (append as you go)
+
+### 2025-01 Password Reset
+- Using SendGrid for transactional email (not SES)
+- Reset tokens expire in 1 hour
+- Rate limited to 3 requests per hour per email
+
+### 2025-02 Notifications
+- WebSocket for real-time (not polling)
+- Fallback to email for offline users
+```
+
+This creates institutional memory that persists across sessions.
+
 ## Directory Structure
 
 ```
