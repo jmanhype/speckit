@@ -1,0 +1,27 @@
+# act configuration for Spec Kit
+# https://github.com/nektos/act
+
+# Use linux/amd64 architecture (required for most GitHub Actions)
+--container-architecture linux/amd64
+
+# Set CI environment variable
+--env CI=true
+
+# Use medium-sized images by default (good balance of compatibility and size)
+# Options: micro, medium, large
+# - micro: ~200MB, minimal, may lack some tools
+# - medium: ~500MB, good default, most tools
+# - large: ~17GB, full GitHub-hosted runner parity
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P ubuntu-22.04=catthehacker/ubuntu:act-22.04
+-P ubuntu-20.04=catthehacker/ubuntu:act-20.04
+
+# Uncomment to use larger images for better GitHub parity (slower, ~17GB):
+# -P ubuntu-latest=catthehacker/ubuntu:full-latest
+# -P ubuntu-22.04=catthehacker/ubuntu:full-22.04
+
+# Uncomment to load secrets from file:
+# --secret-file .secrets
+
+# Uncomment to reuse containers between runs (faster, but may have stale state):
+# --reuse

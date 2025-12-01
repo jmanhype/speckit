@@ -12,6 +12,7 @@
 #   --require-tasks     Require tasks.md to exist (for implementation phase)
 #   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
+#   --check-ci          Verify act and Docker are available for local CI
 #   --help, -h          Show help message
 #
 # OUTPUTS:
@@ -26,6 +27,7 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
+CHECK_CI=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -41,6 +43,9 @@ for arg in "$@"; do
         --paths-only)
             PATHS_ONLY=true
             ;;
+        --check-ci)
+            CHECK_CI=true
+            ;;
         --help|-h)
             cat << 'EOF'
 Usage: check-prerequisites.sh [OPTIONS]
@@ -52,6 +57,7 @@ OPTIONS:
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
+  --check-ci          Verify act and Docker are available for local CI
   --help, -h          Show this help message
 
 EXAMPLES:
@@ -63,7 +69,10 @@ EXAMPLES:
   
   # Get feature paths only (no validation)
   ./check-prerequisites.sh --paths-only
-  
+
+  # Check CI prerequisites (act + Docker)
+  ./check-prerequisites.sh --check-ci
+
 EOF
             exit 0
             ;;
@@ -96,6 +105,138 @@ if $PATHS_ONLY; then
         echo "IMPL_PLAN: $IMPL_PLAN"
         echo "TASKS: $TASKS"
     fi
+    exit 0
+fi
+
+# Check CI prerequisites if requested
+if $CHECK_CI; then
+    ci_errors=()
+    ci_warnings=()
+
+    # Check act
+    if command -v act &> /dev/null; then
+        ACT_VERSION=$(act --version 2>/dev/null | head -1 || echo "unknown")
+        act_status="installed"
+    else
+        act_status="missing"
+        ci_errors+=("act is not installed. Install: brew install act (macOS) or https://github.com/nektos/act")
+    fi
+
+    # Check Docker
+    if command -v docker &> /dev/null; then
+        if docker info &> /dev/null 2>&1; then
+            DOCKER_VERSION=$(docker --version 2>/dev/null | head -1 || echo "unknown")
+            docker_status="running"
+        else
+            docker_status="not_running"
+            ci_errors+=("Docker is installed but not running. Start Docker Desktop or your Docker daemon.")
+        fi
+    else
+        docker_status="missing"
+        ci_errors+=("Docker is not installed. Install: https://docs.docker.com/get-docker/")
+    fi
+
+    # Check for workflow files
+    if [[ -d "$REPO_ROOT/.github/workflows" ]]; then
+        workflow_count=$(find "$REPO_ROOT/.github/workflows" -name "*.yml" -o -name "*.yaml" 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "$workflow_count" -eq 0 ]]; then
+            ci_warnings+=("No workflow files found in .github/workflows/")
+        fi
+    else
+        ci_warnings+=("No .github/workflows/ directory found")
+    fi
+
+    # Check for .actrc
+    if [[ -f "$REPO_ROOT/.actrc" ]]; then
+        actrc_status="present"
+    else
+        actrc_status="missing"
+        ci_warnings+=("No .actrc file found (optional but recommended)")
+    fi
+
+    # Output results
+    if $JSON_MODE; then
+        # Build JSON output
+        errors_json="[]"
+        if [[ ${#ci_errors[@]} -gt 0 ]]; then
+            errors_json=$(printf '"%s",' "${ci_errors[@]}")
+            errors_json="[${errors_json%,}]"
+        fi
+
+        warnings_json="[]"
+        if [[ ${#ci_warnings[@]} -gt 0 ]]; then
+            warnings_json=$(printf '"%s",' "${ci_warnings[@]}")
+            warnings_json="[${warnings_json%,}]"
+        fi
+
+        ready="true"
+        [[ ${#ci_errors[@]} -gt 0 ]] && ready="false"
+
+        printf '{"ci_ready":%s,"act":"%s","docker":"%s","actrc":"%s","workflows":%d,"errors":%s,"warnings":%s}\n' \
+            "$ready" "$act_status" "$docker_status" "$actrc_status" "${workflow_count:-0}" "$errors_json" "$warnings_json"
+    else
+        echo "CI Prerequisites:"
+        echo ""
+
+        # Act status
+        if [[ "$act_status" == "installed" ]]; then
+            echo "  ✓ act: $ACT_VERSION"
+        else
+            echo "  ✗ act: not installed"
+        fi
+
+        # Docker status
+        if [[ "$docker_status" == "running" ]]; then
+            echo "  ✓ Docker: $DOCKER_VERSION"
+        elif [[ "$docker_status" == "not_running" ]]; then
+            echo "  ✗ Docker: installed but not running"
+        else
+            echo "  ✗ Docker: not installed"
+        fi
+
+        # Actrc status
+        if [[ "$actrc_status" == "present" ]]; then
+            echo "  ✓ .actrc: present"
+        else
+            echo "  ○ .actrc: not found (optional)"
+        fi
+
+        # Workflows
+        if [[ -d "$REPO_ROOT/.github/workflows" ]] && [[ "${workflow_count:-0}" -gt 0 ]]; then
+            echo "  ✓ Workflows: $workflow_count found"
+        else
+            echo "  ○ Workflows: none found"
+        fi
+
+        echo ""
+
+        # Errors
+        if [[ ${#ci_errors[@]} -gt 0 ]]; then
+            echo "Errors:"
+            for err in "${ci_errors[@]}"; do
+                echo "  ✗ $err"
+            done
+            echo ""
+        fi
+
+        # Warnings
+        if [[ ${#ci_warnings[@]} -gt 0 ]]; then
+            echo "Warnings:"
+            for warn in "${ci_warnings[@]}"; do
+                echo "  ○ $warn"
+            done
+            echo ""
+        fi
+
+        # Summary
+        if [[ ${#ci_errors[@]} -eq 0 ]]; then
+            echo "✓ CI prerequisites satisfied - ready to use pre-push hook"
+        else
+            echo "✗ CI prerequisites NOT satisfied - fix errors above"
+            exit 1
+        fi
+    fi
+
     exit 0
 fi
 

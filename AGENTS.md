@@ -242,6 +242,73 @@ Before finishing a work session:
    bd update bd-current-work --note "Left off at: implementing auth middleware. Tests passing. Next: add rate limiting."
    ```
 
+4. **Update progress tracking** in `tasks.md`:
+   ```markdown
+   ## Progress
+   - Last session: 2025-01-15 14:30
+   - Completed: T001-T005
+   - In progress: T006 (rate limiting)
+   - Velocity: ~3 tasks/hour
+   ```
+
+### Session Resumption
+
+When starting a new session on existing work:
+
+1. **Re-read all artifacts** in order:
+   ```
+   spec.md → plan.md → tasks.md → Beads (bd ready)
+   ```
+
+2. **Check what's ready:**
+   ```bash
+   bd ready --label feat-XXX --json
+   ```
+
+3. **Update session timestamp** in `tasks.md`
+
+4. **Continue from where you left off** - don't restart or re-plan
+
+## Autonomy & Long-Running Tasks
+
+For multi-hour implementations, operate with maximum autonomy:
+
+### Decision-Making
+
+- **Resolve ambiguities autonomously** rather than stopping to ask
+- **Proceed through milestones** without prompting for "next steps"
+- **Make reasonable technical decisions** aligned with constitution
+- **Document decisions** in the relevant artifact
+
+When encountering a decision point:
+1. Check `constitution.md` for guidance
+2. Review similar patterns in existing code
+3. Make the decision and document it
+4. Continue working
+
+Only stop to ask when:
+- Decision has significant cost/risk implications
+- Multiple valid approaches with major trade-offs exist
+- Requirement is genuinely ambiguous and blocks all progress
+
+### Multi-Hour Task Handling
+
+For tasks spanning 4+ hours:
+
+1. **Commit frequently** at sub-milestones:
+   ```bash
+   git commit -m "feat(auth): implement JWT validation [T003] - WIP"
+   ```
+
+2. **Update Beads** every 1-2 hours:
+   ```bash
+   bd update bd-task --note "Progress: middleware skeleton done, adding tests"
+   ```
+
+3. **Keep artifacts synchronized** - document discoveries immediately
+
+4. **Don't expand tasks.md** with sub-tasks - use Beads for granular tracking
+
 ## Integration Checklist
 
 When setting up a new repository with Spec Kit + Beads:

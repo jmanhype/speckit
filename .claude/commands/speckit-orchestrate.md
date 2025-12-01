@@ -53,6 +53,7 @@ Turn "$ARGUMENTS" into an executed, spec-driven change:
   - `/speckit.tasks`
   - (fallback) `/tasks`
 - Require small, verifiable tasks with dependencies, Definition of Done, and verification steps
+- **Note**: In this streamlined workflow, analyze phase is skipped. For consistency validation, use `/speckit-workflow-v2` or run `/speckit.analyze` manually before implementation.
 
 ### 5. Implement (do the work)
 

@@ -47,7 +47,22 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
 - **Claude Code** (claude.ai/code) - Spec Kit is designed to work with Claude Code's slash command system
 - **Git** (recommended but optional)
 - **Bash** (for automation scripts)
+- **Docker** (required) - For running CI locally via act
+- **act** (required) - [nektos/act](https://github.com/nektos/act) for local GitHub Actions
 - **Beads CLI** (optional but recommended) - For persistent task memory
+
+#### Installing act
+
+```bash
+# macOS
+brew install act
+
+# Linux (via script)
+curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+# Or download from GitHub releases
+# https://github.com/nektos/act/releases
+```
 
 ### Quick Start (Spec Kit Only)
 
@@ -60,7 +75,8 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
    ```bash
    cd your-project
    cp -r ../speckit-framework/.specify ./
-   cp -r ../speckit-framework/.claude/commands/speckit*.md ./.claude/commands/
+   cp -r ../speckit-framework/.claude ./
+   chmod +x ./.claude/hooks/*.sh  # Make hooks executable
    ```
 
 3. **Add CLAUDE.md to your project root** (see Setup section below)
@@ -89,13 +105,13 @@ For the complete experience with persistent memory:
    ```bash
    cd your-project
 
-   # Using install script (automatic detection)
-   curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/speckit/main/install.sh | bash
-
-   # Or manual copy
+   # Copy framework files
    cp -r /path/to/speckit/.specify ./
-   cp -r /path/to/speckit/.claude/commands/speckit*.md ./.claude/commands/
+   cp -r /path/to/speckit/.claude ./
    cp /path/to/speckit/AGENTS.md ./
+
+   # Make hook scripts executable
+   chmod +x ./.claude/hooks/*.sh
    ```
 
 3. **Initialize Beads**:
@@ -118,6 +134,186 @@ For the complete experience with persistent memory:
    # Agent will automatically integrate with Beads
    ```
 
+### Linear Integration Setup
+
+To use Spec Kit with your Linear backlog:
+
+1. **Get Linear API Key**:
+   - Go to `linear.app/YOUR-TEAM/settings/api`
+   - Create a new API key with appropriate permissions
+
+2. **Configure Linear MCP Server**:
+
+   **Option A: Use the official Linear MCP (OAuth)**:
+   ```json
+   // In .claude/settings.local.json
+   {
+     "mcpServers": {
+       "linear": {
+         "url": "https://mcp.linear.app/sse",
+         "transport": "sse"
+       }
+     }
+   }
+   ```
+
+   **Option B: Use community package (API Key)**:
+   ```bash
+   # Copy the example config
+   cp .mcp.json.linear-example .mcp.json
+
+   # Set your API key
+   export LINEAR_API_KEY=lin_api_xxx
+   ```
+
+3. **Enable project MCP servers** in `.claude/settings.json`:
+   ```json
+   {
+     "enableAllProjectMcpServers": true
+   }
+   ```
+
+4. **Test the integration**:
+   ```bash
+   # In Claude Code
+   /speckit.linear.import TEAM-123
+   ```
+
+#### Linear Workflow
+
+```bash
+# 1. Import from Linear backlog
+/speckit.linear.import TEAM-123
+
+# 2. Run normal Spec Kit workflow
+/speckit.clarify
+/speckit.plan
+/speckit.tasks
+
+# 3. Export tasks back to Linear as sub-issues
+/speckit.linear.export
+
+# 4. Implement with bidirectional sync
+/speckit.implement
+/speckit.linear.sync --bidirectional
+```
+
+### Brownfield Repos (Existing Projects)
+
+For projects with existing code, tests, and conventions:
+
+#### 1. Install Spec Kit (same as above)
+
+```bash
+cd your-existing-project
+
+# Copy framework files
+cp -r /path/to/speckit/.specify ./
+cp -r /path/to/speckit/.claude ./
+chmod +x ./.claude/hooks/*.sh
+```
+
+#### 2. Bootstrap Your Constitution
+
+The constitution captures your project's existing decisions and constraints:
+
+```bash
+# In Claude Code
+/speckit.constitution
+```
+
+**Answer these prompts based on your existing codebase:**
+- What tech stack is already in use? (languages, frameworks, databases)
+- What testing patterns exist? (Jest, pytest, existing test commands)
+- What architectural patterns are established? (MVC, Clean Architecture, etc.)
+- What CI/CD pipeline is in place?
+- What coding standards are enforced? (linters, formatters, style guides)
+
+The constitution will be created at `.specify/memory/constitution.md`.
+
+#### 3. Document Existing Test Commands
+
+Update your constitution or `CLAUDE.md` with your actual test commands:
+
+```markdown
+## Existing Test Infrastructure
+
+**Run tests:**
+- Unit: `npm test` or `pytest tests/unit/`
+- Integration: `npm run test:integration` or `pytest tests/integration/`
+- All: `npm run test:all` or `pytest`
+
+**Coverage:** `npm run coverage` or `pytest --cov`
+```
+
+#### 4. Start with One Feature
+
+Don't try to spec your entire codebase. Pick ONE new feature:
+
+```bash
+# In Claude Code
+/speckit.specify Add password reset functionality
+```
+
+Spec Kit will:
+- Respect your existing code structure
+- Use your established patterns (from constitution)
+- Ensure 100% test pass rate (including existing tests)
+- Generate tasks that fit your project
+
+#### 5. Key Brownfield Considerations
+
+| Concern | How Spec Kit Handles It |
+|---------|------------------------|
+| **Existing tests** | 100% pass gate includes ALL existing tests (no regressions) |
+| **Existing patterns** | Constitution captures them; plan references them |
+| **Existing CI/CD** | Hook into existing pipelines; don't replace |
+| **Incremental adoption** | One feature at a time; no big bang |
+| **Legacy code** | Specs can include "refactor" user stories |
+
+#### 6. Example: Adding Feature to Django Project
+
+```bash
+# 1. Install Spec Kit
+cp -r /path/to/speckit/.specify ./
+cp -r /path/to/speckit/.claude ./
+chmod +x ./.claude/hooks/*.sh
+
+# 2. Bootstrap constitution (capture Django conventions)
+# /speckit.constitution → answers: Django 4.2, pytest-django, REST framework, etc.
+
+# 3. Specify new feature
+# /speckit.specify Add user notification preferences API
+
+# 4. Plan respects Django conventions
+# → Uses existing models.py, serializers.py, views.py patterns
+# → Tests go in existing tests/ structure
+# → Migrations use existing Alembic/Django setup
+
+# 5. Implement with test gate
+# Every task runs `pytest` → must pass 100%
+# Existing tests + new tests all green
+```
+
+#### 7. Gradual Constitution Evolution
+
+As you add features, your constitution grows:
+
+```markdown
+## Recent Decisions (append as you go)
+
+### 2025-01 Password Reset
+- Using SendGrid for transactional email (not SES)
+- Reset tokens expire in 1 hour
+- Rate limited to 3 requests per hour per email
+
+### 2025-02 Notifications
+- WebSocket for real-time (not polling)
+- Fallback to email for offline users
+```
+
+This creates institutional memory that persists across sessions.
+
 ## Directory Structure
 
 ```
@@ -126,18 +322,25 @@ your-project/
 │   ├── issues.jsonl           # Issue storage
 │   └── beads.db               # SQLite cache
 ├── .claude/
-│   └── commands/              # Slash command definitions
-│       ├── speckit.specify.md
-│       ├── speckit.plan.md
-│       ├── speckit.tasks.md
-│       ├── speckit.implement.md
-│       ├── speckit.clarify.md
-│       ├── speckit.checklist.md
-│       ├── speckit.analyze.md
-│       ├── speckit.constitution.md
-│       ├── speckit.taskstoissues.md
-│       ├── speckit-workflow-v2.md
-│       └── speckit-orchestrate.md
+│   ├── settings.json          # Project settings (hooks, permissions, env)
+│   ├── settings.local.json    # Local overrides (gitignored)
+│   ├── README.md              # Configuration documentation
+│   ├── commands/              # Slash commands (user-invoked)
+│   │   ├── speckit.*.md       # Spec Kit workflow commands
+│   │   └── _example-command.md
+│   ├── skills/                # Model-invoked skills (auto-triggered)
+│   │   ├── beads-integration/ # Persistent memory
+│   │   ├── spec-kit-workflow/ # Workflow guidance
+│   │   └── spec-validation/   # Quality validation
+│   ├── agents/                # Custom AI subagents
+│   │   ├── spec-validator.md
+│   │   ├── consistency-checker.md
+│   │   └── beads-sync.md
+│   └── hooks/                 # External hook scripts
+│       ├── session-start.sh   # Session initialization
+│       ├── pre-compact.sh     # Pre-compaction tasks
+│       └── post-edit.sh       # Post-edit automation
+├── .mcp.json                  # Project-scoped MCP servers (optional)
 ├── .specify/
 │   ├── memory/
 │   │   └── constitution.md    # Project architectural principles
@@ -146,7 +349,11 @@ your-project/
 │   │   ├── check-prerequisites.sh
 │   │   ├── create-new-feature.sh
 │   │   ├── setup-plan.sh
-│   │   └── update-agent-context.sh
+│   │   ├── update-agent-context.sh
+│   │   ├── create-beads-issues.sh        # Bulk import tasks to Beads
+│   │   ├── update-tasks-with-beads-ids.sh  # Link Beads IDs
+│   │   ├── pre-push-ci.sh                # Run CI locally before push
+│   │   └── install-hooks.sh              # Install git hooks
 │   └── templates/             # Document templates
 │       ├── spec-template.md
 │       ├── plan-template.md
@@ -162,6 +369,40 @@ your-project/
 ├── AGENTS.md                  # Instructions for AI agents (Beads workflow)
 └── CLAUDE.md                  # Instructions for Claude Code
 ```
+
+## Extensibility
+
+Spec Kit provides three extension mechanisms for Claude Code. See [.claude/README.md](.claude/README.md) for full documentation.
+
+### Skills (Model-Invoked)
+
+Skills in `.claude/skills/` are automatically activated by Claude based on conversation context - no user action required.
+
+| Skill | Auto-Triggered When... |
+|-------|------------------------|
+| `spec-kit-workflow` | Discussing features, specs, or planning |
+| `beads-integration` | Working on tasks or multi-session projects |
+| `spec-validation` | Creating or reviewing specifications |
+
+### Agents (Subagents)
+
+Agents in `.claude/agents/` are specialized AI subagents invoked via the Task tool for focused sub-tasks.
+
+| Agent | Purpose |
+|-------|---------|
+| `spec-validator` | Validates spec quality and technology-agnosticism |
+| `consistency-checker` | Cross-artifact validation (spec ↔ plan ↔ tasks) |
+| `beads-sync` | Synchronizes tasks.md with Beads |
+
+### Hooks (Automation)
+
+Hooks in `.claude/hooks/` run at Claude Code lifecycle events:
+
+| Hook | When It Fires |
+|------|---------------|
+| `session-start.sh` | Session begins (primes Beads) |
+| `pre-compact.sh` | Before context compaction |
+| `post-edit.sh` | After file edits (example for auto-formatting) |
 
 ## Workflow Commands
 
@@ -271,6 +512,50 @@ Create or update project constitution (architectural principles).
 #### `/speckit.taskstoissues`
 Convert tasks.md into GitHub issues with dependencies.
 
+### Linear Integration Commands
+
+#### `/speckit.linear.import <issue-id>`
+Import a Linear issue as a new Spec Kit feature specification.
+
+**What it does**:
+- Fetches issue from Linear via MCP
+- Creates feature directory and spec.md
+- Maps Linear fields to spec sections
+- Adds bidirectional link (comment on Linear issue)
+
+**Example**:
+```
+/speckit.linear.import TEAM-123
+```
+
+#### `/speckit.linear.export [issue-id]`
+Export tasks.md as Linear sub-issues linked to a parent issue.
+
+**What it does**:
+- Parses tasks.md and creates Linear sub-issues
+- Sets priority, labels, and parent relationship
+- Creates `.specify/linear-mapping.json` for tracking
+- Updates tasks.md with Linear IDs
+
+**Example**:
+```
+/speckit.linear.export TEAM-123
+```
+
+#### `/speckit.linear.sync [options]`
+Synchronize status between tasks.md and Linear issues.
+
+**Options**:
+- `--to-linear` - Push local status to Linear (default)
+- `--from-linear` - Pull Linear status to local
+- `--bidirectional` - Two-way sync (Linear wins conflicts)
+- `--dry-run` - Show changes without applying
+
+**Example**:
+```
+/speckit.linear.sync --bidirectional
+```
+
 ## Setup
 
 ### 1. Create CLAUDE.md
@@ -370,6 +655,9 @@ Modify templates in `.specify/templates/` to match your project's needs:
 # Generate tasks
 /speckit.tasks
 
+# Validate consistency (IMPORTANT: Always run before implementing!)
+/speckit.analyze
+
 # Implement
 /speckit.implement
 ```
@@ -390,6 +678,43 @@ Modify templates in `.specify/templates/` to match your project's needs:
 eval $(./.specify/scripts/bash/check-prerequisites.sh --paths-only)
 echo $FEATURE_DIR  # prints: specs/001-user-auth
 ```
+
+### Example 4: Beads Integration Workflow
+
+For long-running projects with persistent task memory:
+
+```bash
+# 1. Initialize Beads (one-time setup)
+bd init
+bd doctor  # Verify setup
+
+# 2. Create feature and generate tasks
+/speckit.specify Add payment processing with Stripe
+/speckit.plan
+/speckit.tasks
+/speckit.analyze  # Validate before creating Beads issues
+
+# 3. Create epic for this feature
+bd create "Payment Processing" --type epic --priority P1
+# Note the epic ID, e.g., speckit-abc123
+
+# 4. Bulk import tasks to Beads
+./.specify/scripts/bash/create-beads-issues.sh specs/001-payment-processing/tasks.md speckit-abc123
+
+# 5. Link Beads IDs back to tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/001-payment-processing/tasks.md
+
+# 6. Drive implementation from Beads
+bd ready                              # Show tasks ready to work on
+bd update speckit-abc123.1 --status in-progress
+# ... implement the task ...
+bd update speckit-abc123.1 --status done
+
+# 7. Continue with next ready task
+bd ready
+```
+
+**Why Beads?** Provides persistent memory across sessions, survives context limits, and enables long-running AI-assisted projects.
 
 ## Task Organization
 
@@ -424,6 +749,123 @@ Tasks are organized by **user story priority** for independent implementation:
 - Testable and unambiguous requirements
 - Measurable success criteria
 - Clear user scenarios
+
+### Test Pass Gate (MANDATORY)
+
+**100% of all tests must pass** at every level:
+
+| Level | Tests Required | Pass Rate |
+|-------|---------------|-----------|
+| Task | Unit tests | 100% |
+| User Story | Integration tests | 100% |
+| Feature | Smoke tests | 100% |
+
+**Rules:**
+- A task is NOT complete if any test fails
+- A story is NOT complete if integration tests fail
+- A feature is NOT shippable if smoke tests fail
+- No regressions allowed (existing tests must keep passing)
+
+#### Automated Enforcement
+
+Spec Kit provides three layers of automated test enforcement:
+
+**1. Post-Edit Hook** (runs after every file edit):
+```bash
+# Already configured in settings.json
+# Runs: .claude/hooks/test-gate.sh after Edit|Write|MultiEdit
+# Result: Claude sees test failures immediately
+```
+
+**2. Pre-Commit Hook** (blocks commits with failing tests):
+```bash
+# Install the hook
+cp .specify/templates/pre-commit-hook.sh .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+# Now: git commit will fail if tests fail
+```
+
+**3. Pre-Push Hook** (runs full CI locally before push):
+```bash
+# Install the hook
+./.specify/scripts/bash/install-hooks.sh
+
+# Now: git push will run act to verify CI passes locally
+# Bypass (emergency): SPECKIT_SKIP_CI=1 git push
+```
+
+**4. GitHub Actions** (blocks PRs with failing tests):
+```bash
+# Copy workflow template
+mkdir -p .github/workflows
+cp .specify/templates/github-workflows/test-gate.yml .github/workflows/
+
+# Edit to uncomment your language section (Python, Node, Go, etc.)
+```
+
+| Layer | When It Runs | What It Blocks |
+|-------|-------------|----------------|
+| Post-Edit Hook | After Claude edits code | Nothing (advisory) |
+| Pre-Commit Hook | On `git commit` | Commits with failing tests |
+| **Pre-Push Hook** | On `git push` | **Pushes if CI would fail** |
+| GitHub Actions | On push/PR | Merges with failing tests |
+
+### Local CI with act
+
+Spec Kit enforces CI-green-before-push using [act](https://github.com/nektos/act) to run GitHub Actions locally.
+
+#### Setup
+
+```bash
+# 1. Verify prerequisites
+./.specify/scripts/bash/check-prerequisites.sh --check-ci
+
+# 2. Install the pre-push hook
+./.specify/scripts/bash/install-hooks.sh
+
+# 3. (Optional) Customize .actrc for your project
+# Edit .actrc to configure act behavior
+```
+
+#### How It Works
+
+1. You run `git push`
+2. Pre-push hook intercepts and runs `act push`
+3. act executes your GitHub Actions workflow locally in Docker
+4. If CI passes → push proceeds
+5. If CI fails → push is blocked with error details
+
+#### Configuration
+
+The `.actrc` file configures act behavior:
+
+```bash
+# .actrc
+--container-architecture linux/amd64
+--env CI=true
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+```
+
+#### Escape Hatch
+
+For emergencies (use sparingly):
+
+```bash
+SPECKIT_SKIP_CI=1 git push
+```
+
+Skips are logged to `.specify/ci-skip.log` for audit.
+
+#### Troubleshooting act
+
+| Issue | Solution |
+|-------|----------|
+| "act not found" | Install: `brew install act` |
+| "Docker not running" | Start Docker Desktop or daemon |
+| Slow first run | act pulls Docker images (~500MB-2GB) |
+| Action not supported | Some actions don't work locally; check [act compatibility](https://github.com/nektos/act#known-issues) |
+| Secrets needed | Create `.secrets` file or pass via `--secret` |
 
 ### Checklist Validation
 Domain-specific checklists ensure:
@@ -477,6 +919,36 @@ Run diagnostics:
 ### Tasks Not Executing in Order
 - Sequential tasks: NO `[P]` marker
 - Parallel tasks: Include `[P]` marker
+
+### Beads Bulk Import Issues
+
+**Problem**: `bd create --file` segfaults with markdown files
+
+**Solution**: Use the provided workaround scripts:
+
+```bash
+# 1. Create issues individually (workaround for segfault)
+./.specify/scripts/bash/create-beads-issues.sh specs/###-feature/tasks.md <epic-id>
+
+# 2. Link Beads IDs back to tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature/tasks.md
+```
+
+**What these scripts do**:
+- `create-beads-issues.sh`: Extracts tasks from tasks.md, creates Beads issues with intelligent priority/label detection, adds 0.1s delay between creates to avoid overwhelming the system
+- `update-tasks-with-beads-ids.sh`: Updates tasks.md to link each task with its Beads ID (converts `- [ ] T001` to `- [ ] (speckit-abc.1) T001`)
+
+Both scripts include validation, error handling, backup creation, and colored output for better UX.
+
+### Analyze Phase Warnings
+
+If `/speckit.analyze` reports missing requirements or inconsistencies:
+
+1. **Missing tasks for spec requirements**: Add tasks to tasks.md for uncovered requirements
+2. **Scope creep detected**: Remove tasks that don't align with spec.md
+3. **Graceful degradation tasks missing**: If constitution requires fallback strategies, ensure tasks.md includes error handling implementation
+
+Always run `/speckit.analyze` after generating tasks.md and before starting implementation.
 
 ## Contributing
 
