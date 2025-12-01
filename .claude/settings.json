@@ -21,6 +21,17 @@
         ],
         "matcher": ""
       }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "./.claude/hooks/test-gate.sh \"$CLAUDE_FILE_PATHS\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      }
     ]
   },
   "permissions": {
