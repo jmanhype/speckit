@@ -254,6 +254,49 @@ With multiple developers:
 
 ---
 
+## Task Completion Criteria
+
+**A task is NOT complete until ALL of the following are true:**
+
+| Criterion | Requirement |
+|-----------|-------------|
+| Implementation | Code is written and compiles/runs without errors |
+| Unit tests | 100% pass rate (all relevant unit tests pass) |
+| Integration tests | 100% pass rate (if task affects API/data flow) |
+| Smoke tests | 100% pass rate (if task affects critical paths) |
+| No regressions | All previously passing tests still pass |
+| Marked complete | Task checkbox changed from `[ ]` to `[x]` |
+
+**Failure Protocol:**
+1. If any test fails → FIX before marking complete
+2. If fix is non-trivial → Create blocking issue, do NOT proceed
+3. NEVER skip tests or mark task complete with failures
+
+## User Story Completion Criteria
+
+**A user story is NOT complete until:**
+
+| Criterion | Requirement |
+|-----------|-------------|
+| All tasks | Every task in the story is `[x]` completed |
+| Unit tests | 100% pass for all story code |
+| Integration tests | 100% pass for story's user journeys |
+| Independent test | Story verified working in isolation |
+| Checkpoint passed | Story validated at its checkpoint |
+
+## Feature Completion Criteria
+
+**A feature is NOT shippable until:**
+
+| Criterion | Requirement |
+|-----------|-------------|
+| All stories | Every user story complete (per above) |
+| Smoke tests | 100% pass (all critical paths work) |
+| No regressions | All existing tests still pass |
+| Cross-story | Stories work together correctly |
+
+---
+
 ## Beads Integration (Recommended)
 
 For long-running projects with persistent task memory:
