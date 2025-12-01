@@ -641,6 +641,41 @@ Tasks are organized by **user story priority** for independent implementation:
 - A feature is NOT shippable if smoke tests fail
 - No regressions allowed (existing tests must keep passing)
 
+#### Automated Enforcement
+
+Spec Kit provides three layers of automated test enforcement:
+
+**1. Post-Edit Hook** (runs after every file edit):
+```bash
+# Already configured in settings.json
+# Runs: .claude/hooks/test-gate.sh after Edit|Write|MultiEdit
+# Result: Claude sees test failures immediately
+```
+
+**2. Pre-Commit Hook** (blocks commits with failing tests):
+```bash
+# Install the hook
+cp .specify/templates/pre-commit-hook.sh .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+# Now: git commit will fail if tests fail
+```
+
+**3. GitHub Actions** (blocks PRs with failing tests):
+```bash
+# Copy workflow template
+mkdir -p .github/workflows
+cp .specify/templates/github-workflows/test-gate.yml .github/workflows/
+
+# Edit to uncomment your language section (Python, Node, Go, etc.)
+```
+
+| Layer | When It Runs | What It Blocks |
+|-------|-------------|----------------|
+| Post-Edit Hook | After Claude edits code | Nothing (advisory) |
+| Pre-Commit Hook | On `git commit` | Commits with failing tests |
+| GitHub Actions | On push/PR | Merges with failing tests |
+
 ### Checklist Validation
 Domain-specific checklists ensure:
 - Security best practices
