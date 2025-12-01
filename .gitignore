@@ -49,3 +49,9 @@ CLAUDE.local.md
 .env
 .env.local
 .env.*.local
+
+# act secrets (never commit)
+.secrets
+
+# CI skip audit log (local only)
+.specify/ci-skip.log

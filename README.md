@@ -47,7 +47,22 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
 - **Claude Code** (claude.ai/code) - Spec Kit is designed to work with Claude Code's slash command system
 - **Git** (recommended but optional)
 - **Bash** (for automation scripts)
+- **Docker** (required) - For running CI locally via act
+- **act** (required) - [nektos/act](https://github.com/nektos/act) for local GitHub Actions
 - **Beads CLI** (optional but recommended) - For persistent task memory
+
+#### Installing act
+
+```bash
+# macOS
+brew install act
+
+# Linux (via script)
+curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+# Or download from GitHub releases
+# https://github.com/nektos/act/releases
+```
 
 ### Quick Start (Spec Kit Only)
 
@@ -272,7 +287,9 @@ your-project/
 │   │   ├── setup-plan.sh
 │   │   ├── update-agent-context.sh
 │   │   ├── create-beads-issues.sh        # Bulk import tasks to Beads
-│   │   └── update-tasks-with-beads-ids.sh  # Link Beads IDs
+│   │   ├── update-tasks-with-beads-ids.sh  # Link Beads IDs
+│   │   ├── pre-push-ci.sh                # Run CI locally before push
+│   │   └── install-hooks.sh              # Install git hooks
 │   └── templates/             # Document templates
 │       ├── spec-template.md
 │       ├── plan-template.md
@@ -661,7 +678,16 @@ chmod +x .git/hooks/pre-commit
 # Now: git commit will fail if tests fail
 ```
 
-**3. GitHub Actions** (blocks PRs with failing tests):
+**3. Pre-Push Hook** (runs full CI locally before push):
+```bash
+# Install the hook
+./.specify/scripts/bash/install-hooks.sh
+
+# Now: git push will run act to verify CI passes locally
+# Bypass (emergency): SPECKIT_SKIP_CI=1 git push
+```
+
+**4. GitHub Actions** (blocks PRs with failing tests):
 ```bash
 # Copy workflow template
 mkdir -p .github/workflows
@@ -674,7 +700,64 @@ cp .specify/templates/github-workflows/test-gate.yml .github/workflows/
 |-------|-------------|----------------|
 | Post-Edit Hook | After Claude edits code | Nothing (advisory) |
 | Pre-Commit Hook | On `git commit` | Commits with failing tests |
+| **Pre-Push Hook** | On `git push` | **Pushes if CI would fail** |
 | GitHub Actions | On push/PR | Merges with failing tests |
+
+### Local CI with act
+
+Spec Kit enforces CI-green-before-push using [act](https://github.com/nektos/act) to run GitHub Actions locally.
+
+#### Setup
+
+```bash
+# 1. Verify prerequisites
+./.specify/scripts/bash/check-prerequisites.sh --check-ci
+
+# 2. Install the pre-push hook
+./.specify/scripts/bash/install-hooks.sh
+
+# 3. (Optional) Customize .actrc for your project
+# Edit .actrc to configure act behavior
+```
+
+#### How It Works
+
+1. You run `git push`
+2. Pre-push hook intercepts and runs `act push`
+3. act executes your GitHub Actions workflow locally in Docker
+4. If CI passes → push proceeds
+5. If CI fails → push is blocked with error details
+
+#### Configuration
+
+The `.actrc` file configures act behavior:
+
+```bash
+# .actrc
+--container-architecture linux/amd64
+--env CI=true
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+```
+
+#### Escape Hatch
+
+For emergencies (use sparingly):
+
+```bash
+SPECKIT_SKIP_CI=1 git push
+```
+
+Skips are logged to `.specify/ci-skip.log` for audit.
+
+#### Troubleshooting act
+
+| Issue | Solution |
+|-------|----------|
+| "act not found" | Install: `brew install act` |
+| "Docker not running" | Start Docker Desktop or daemon |
+| Slow first run | act pulls Docker images (~500MB-2GB) |
+| Action not supported | Some actions don't work locally; check [act compatibility](https://github.com/nektos/act#known-issues) |
+| Secrets needed | Create `.secrets` file or pass via `--secret` |
 
 ### Checklist Validation
 Domain-specific checklists ensure:
