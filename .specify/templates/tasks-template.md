@@ -242,6 +242,41 @@ With multiple developers:
 
 ---
 
+## Task Completion Criteria
+
+**A task is NOT complete until ALL of the following are true:**
+
+| Criterion | Requirement |
+|-----------|-------------|
+| Implementation | Code is written and compiles/runs without errors |
+| Unit tests | 100% pass rate (all relevant unit tests pass) |
+| Integration tests | 100% pass rate (if task affects API/data flow) |
+| Smoke tests | 100% pass rate (if task affects critical paths) |
+| No regressions | All previously passing tests still pass |
+| Marked complete | Task checkbox changed from `[ ]` to `[x]` |
+
+**Failure Protocol:**
+1. If any test fails → FIX before marking complete
+2. If fix is non-trivial → Create blocking issue, do NOT proceed
+3. NEVER skip tests or mark task complete with failures
+
+## User Story Completion Criteria
+
+**A user story is NOT complete until:**
+- [ ] All tasks in the story are complete (per above criteria)
+- [ ] All integration tests for the story pass (100%)
+- [ ] Story can be demonstrated independently
+- [ ] Story can be tested independently
+
+## Feature Completion Criteria
+
+**A feature is NOT shippable until:**
+- [ ] All user stories are complete
+- [ ] All smoke tests pass (100%)
+- [ ] `/speckit.analyze` shows no CRITICAL or HIGH issues
+
+---
+
 ## Notes
 
 - **[P] tasks** = different files, no dependencies

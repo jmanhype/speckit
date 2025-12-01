@@ -61,6 +61,38 @@ Sync Impact Report:
 - Accessibility tests for all UI components (WCAG 2.1 AA)
 - Performance tests for critical paths (gap analysis, vector search)
 
+### II.A Test Pass Gate - MANDATORY
+
+**100% of all tests MUST pass before any work is considered complete:**
+
+| Test Type | Pass Rate Required | When to Run |
+|-----------|-------------------|-------------|
+| Unit tests | 100% | After each task |
+| Integration tests | 100% | After each user story |
+| Smoke tests | 100% | Before any deployment/demo |
+
+**Enforcement Rules:**
+- A task is **NOT complete** if any relevant test fails
+- A user story is **NOT complete** if any integration test fails
+- A feature is **NOT shippable** if any smoke test fails
+- Existing tests MUST NOT regress (no breaking previously passing tests)
+- Flaky tests MUST be fixed or quarantined immediately (not ignored)
+
+**Smoke Test Definition:**
+Smoke tests are high-level sanity checks that verify core functionality:
+- Application starts successfully
+- Critical user paths work end-to-end
+- External service connections are healthy
+- Database migrations applied correctly
+
+**Failure Handling:**
+- If tests fail: FIX THE CODE, not the tests (unless test is wrong)
+- If fix is non-trivial: Create blocking issue before proceeding
+- NEVER skip failing tests to "ship faster"
+- NEVER mark task complete with failing tests
+
+**Rationale:** Pass rate and coverage are different metrics. 90% coverage with 50% pass rate is catastrophic. This gate ensures every test that exists actually passes.
+
 ### II. SOLID Architecture - MANDATORY
 
 **All code MUST adhere to SOLID principles:**

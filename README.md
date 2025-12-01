@@ -509,6 +509,22 @@ Tasks are organized by **user story priority** for independent implementation:
 - Measurable success criteria
 - Clear user scenarios
 
+### Test Pass Gate (MANDATORY)
+
+**100% of all tests must pass** at every level:
+
+| Level | Tests Required | Pass Rate |
+|-------|---------------|-----------|
+| Task | Unit tests | 100% |
+| User Story | Integration tests | 100% |
+| Feature | Smoke tests | 100% |
+
+**Rules:**
+- A task is NOT complete if any test fails
+- A story is NOT complete if integration tests fail
+- A feature is NOT shippable if smoke tests fail
+- No regressions allowed (existing tests must keep passing)
+
 ### Checklist Validation
 Domain-specific checklists ensure:
 - Security best practices

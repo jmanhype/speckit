@@ -131,11 +131,29 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-10. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
+10. **Test Pass Gate (MANDATORY)** - After EACH task:
+    - Run relevant unit tests for the code touched
+    - **100% pass rate required** - ALL tests must pass
+    - If ANY test fails:
+      - **DO NOT mark task complete**
+      - **DO NOT proceed to next task**
+      - Fix the failing test/code first
+      - Re-run tests until 100% pass
+    - After each user story completes:
+      - Run integration tests for that story
+      - **100% pass rate required**
+    - Before marking feature complete:
+      - Run ALL tests (unit + integration + smoke)
+      - **100% pass rate required across all test types**
+
+11. Completion validation:
+    - Verify all required tasks are completed
+    - Check that implemented features match the original specification
+    - **Run full test suite and verify 100% pass rate**:
+      - Unit tests: 100% pass ✓
+      - Integration tests: 100% pass ✓
+      - Smoke tests: 100% pass ✓
+    - Confirm the implementation follows the technical plan
+    - Report final status with summary of completed work and test results
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
