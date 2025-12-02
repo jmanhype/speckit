@@ -32,6 +32,8 @@ This repository provides a framework that can be integrated into any software pr
 │   │   ├── common.sh              # Shared utilities
 │   │   ├── check-prerequisites.sh # Validate workflow state
 │   │   ├── create-new-feature.sh  # Initialize feature branches
+│   │   ├── create-beads-epic.sh   # Create Pivotal-style Beads epics
+│   │   ├── create-beads-issues.sh # Bulk import tasks with dependencies
 │   │   ├── setup-plan.sh          # Initialize planning artifacts
 │   │   └── update-agent-context.sh # Update context files
 │   └── templates/             # Document templates
@@ -42,6 +44,43 @@ This repository provides a framework that can be integrated into any software pr
 │       └── agent-file-template.md # Agent context file
 ├── README.md                  # Framework documentation
 └── LICENSE                    # MIT License
+```
+
+## Pivotal Labs Methodology
+
+Spec Kit + Beads implements practices from **Pivotal Labs** (VMware Tanzu Labs):
+
+| Pivotal Practice | Spec Kit Implementation |
+|-----------------|------------------------|
+| **TDD** | `test-gate.sh` enforces 100% test pass after edits |
+| **User Stories** | spec.md with P0/P1/P2/P3 priorities |
+| **Story Types** | Beads `--type epic/task/bug` |
+| **Story States** | Beads `--status todo/in-progress/done` |
+| **Acceptance Criteria** | spec.md sections → Beads epic description |
+| **IPM (Planning)** | `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` |
+| **Dependencies** | Automatic P0 → P1 → P2 → P3 blocking |
+
+### Pivotal-Style Beads Workflow
+
+```bash
+# 1. Create spec with Problem Statement, Business Value, Acceptance Criteria
+/speckit.specify Add payment processing
+
+# 2. Create plan with Architectural Vision
+/speckit.plan
+
+# 3. Create Pivotal-style epic (extracts from spec.md + plan.md)
+./.specify/scripts/bash/create-beads-epic.sh specs/001-feature P0
+
+# 4. Generate tasks
+/speckit.tasks
+
+# 5. Bulk import tasks with P0→P1→P2 dependencies
+EPIC_ID=$(cat specs/001-feature/.beads-epic-id)
+./.specify/scripts/bash/create-beads-issues.sh specs/001-feature/tasks.md $EPIC_ID
+
+# 6. Drive implementation from Beads
+bd ready  # Shows P0 tasks first, then P1 as P0 completes
 ```
 
 ## Working with This Repository
