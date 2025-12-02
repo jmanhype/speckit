@@ -470,8 +470,12 @@ Per plan.md: Web application structure
   - Backend tests: 100% coverage, 1230 passing
   - Frontend tests: TypeScript build passing
   - Security scan: Trivy running (non-blocking upload)
-  - Docker build: Images building (push requires Docker Hub secrets)
-  - Commits: e98cde7, 26bfb74, 317932e (Dec 1, 2025)
+  - Docker build: ✅ **Both images building successfully!**
+    - Backend image: marketprep-backend:latest (multi-stage Python 3.11)
+    - Frontend image: marketprep-frontend:latest (multi-stage Node 20 + nginx)
+    - Conditional tags: Registry prefix when DOCKER_USERNAME set, local tags otherwise
+    - Fix: Invalid tag format resolved (was `/imagename`, now `imagename`)
+  - Commits: e98cde7, 26bfb74, 317932e, c8a9e29 (Dec 1-2, 2025)
 
 ### Performance Optimization
 
