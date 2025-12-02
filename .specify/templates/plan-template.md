@@ -9,6 +9,20 @@
 
 [Extract from feature spec: primary requirement + technical approach from research]
 
+## Architectural Vision *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define the high-level architectural approach.
+  This maps directly to Beads epic ARCHITECTURAL VISION field.
+  Describe the key architectural decisions and their rationale.
+-->
+
+1. [Component/Layer 1]: [What it does and why this approach - e.g., "NLF becomes a pure fact extractor targeting a canonical ontology (pack-agnostic)"]
+2. [Component/Layer 2]: [What it does and why - e.g., "Deterministic mapping layer translates canonical facts to pack-specific predicates"]
+3. [Component/Layer 3]: [What it does and why - e.g., "LCE returns 'unknown' when no rules fire (OWA semantics)"]
+4. [Component/Layer 4]: [What it does and why - e.g., "Domain heuristics move from imperative code to declarative rules"]
+5. [Simplification]: [What complexity is removed - e.g., "Router scoring removed - user selects packs or deterministic keyword matching"]
+
 ## Technical Context
 
 <!--

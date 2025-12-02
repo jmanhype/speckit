@@ -1,9 +1,32 @@
 # Feature Specification: [FEATURE NAME]
 
-**Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
-**Status**: Draft  
+**Feature Branch**: `[###-feature-name]`
+**Created**: [DATE]
+**Status**: Draft
 **Input**: User description: "$ARGUMENTS"
+
+## Problem Statement *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define the problem this feature solves.
+  This maps directly to Beads epic PROBLEM STATEMENT field.
+  Be specific about pain points and current limitations.
+-->
+
+[Describe the problem or pain point this feature addresses. What is broken, missing, or suboptimal today? Why does this matter?]
+
+## Business Value *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define the business value delivered by this feature.
+  This maps directly to Beads epic BUSINESS VALUE field.
+  Focus on outcomes, not implementation details.
+-->
+
+- [Value 1: e.g., "Predictable evaluation results that can be demonstrated to investors"]
+- [Value 2: e.g., "Reduced support tickets by automating common tasks"]
+- [Value 3: e.g., "Faster time-to-market for new features"]
+- [Value 4: e.g., "Improved developer experience with clear error messages"]
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -113,3 +136,32 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Integration Tests *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define end-to-end integration tests for the feature.
+  This maps directly to Beads epic INTEGRATION TESTS field.
+  These are feature-level tests that verify the complete user journey.
+-->
+
+- **IT-001**: End-to-end: [Input] → [Processing steps] → [Expected output]
+- **IT-002**: [Critical path test: e.g., "All demo scenarios pass with predictable, reproducible results"]
+- **IT-003**: [Edge case test: e.g., "System returns appropriate error when no rules match"]
+- **IT-004**: [Provenance test: e.g., "Each result can be traced back to source input"]
+
+## Acceptance Criteria *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define the acceptance criteria for the feature.
+  This maps directly to Beads epic Acceptance Criteria field.
+  These are the conditions that must be met for the feature to be considered complete.
+-->
+
+1. [Criterion 1: e.g., "Component X performs Y without awareness of Z"]
+2. [Criterion 2: e.g., "Mapping layer deterministically converts A to B"]
+3. [Criterion 3: e.g., "System returns 'unknown' when no rules apply"]
+4. [Criterion 4: e.g., "All N demo scenarios pass consistently"]
+5. [Criterion 5: e.g., "Logic exists as declarative rules, not imperative code"]
+6. [Criterion 6: e.g., "No manual tuning required - selection is explicit"]
+7. [Criterion 7: e.g., "Architecture documented with clear data flow diagrams"]
