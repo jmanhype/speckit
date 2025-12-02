@@ -40,6 +40,26 @@ See **[AGENTS.md](AGENTS.md)** for full Beads + Spec Kit workflow.
 - **User story prioritization**: Enable incremental delivery and independent testing
 - **Beads integration**: Persistent memory layer for long-running work and discoveries
 
+### Pivotal Labs Methodology
+
+Spec Kit + Beads implements practices from **Pivotal Labs** (VMware Tanzu Labs):
+
+| Pivotal Practice | Spec Kit Implementation |
+|-----------------|------------------------|
+| **TDD** | `test-gate.sh` enforces 100% test pass after edits |
+| **User Stories** | spec.md with P0/P1/P2/P3 priorities |
+| **Story Types** | Beads `--type epic/task/bug` |
+| **Story States** | Beads `--status todo/in-progress/done` |
+| **Acceptance Criteria** | spec.md sections → Beads epic description |
+| **IPM (Planning)** | `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` |
+| **Velocity** | `bd ready` shows unblocked work |
+| **Dependencies** | Automatic P0 → P1 → P2 → P3 blocking |
+
+**New in this version:**
+- `create-beads-epic.sh` - Creates Pivotal-style epics with Problem Statement, Business Value, Architectural Vision
+- `create-beads-issues.sh` - Bulk imports tasks with automatic dependency setup
+- Templates include Pivotal-aligned sections (Problem Statement, Business Value, etc.)
+
 ## Installation
 
 ### Prerequisites

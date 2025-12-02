@@ -297,39 +297,68 @@ With multiple developers:
 
 ---
 
-## Beads Integration (Recommended)
+## Beads Integration (Pivotal-Style)
 
-For long-running projects with persistent task memory:
+Spec Kit + Beads implements **Pivotal Labs methodology** with rich epics and dependency tracking.
 
-### 1. Create Epic
+### 1. Create Pivotal-Style Epic
 
-```bash
-bd create "Feature Name" --type epic --priority P1
-# Note the epic ID (e.g., speckit-abc123)
-```
-
-### 2. Create Task Issues
-
-After generating tasks.md, use the bulk import workaround:
+After `/speckit.plan`, create an epic with full context:
 
 ```bash
-.specify/scripts/bash/create-beads-issues.sh specs/###-feature-name/tasks.md speckit-abc123
+./.specify/scripts/bash/create-beads-epic.sh specs/###-feature-name P0
 ```
+
+This extracts from spec.md and plan.md:
+- Problem Statement
+- Business Value
+- Architectural Vision
+- Integration Tests
+- Acceptance Criteria
+
+Epic ID is saved to `specs/###-feature-name/.beads-epic-id`
+
+### 2. Create Task Issues with Dependencies
+
+After generating tasks.md, bulk import with automatic dependency setup:
+
+```bash
+# Get epic ID from plan phase
+EPIC_ID=$(cat specs/###-feature-name/.beads-epic-id)
+
+# Create tasks with P0→P1→P2→P3 dependencies
+./.specify/scripts/bash/create-beads-issues.sh specs/###-feature-name/tasks.md $EPIC_ID
+```
+
+The script automatically:
+- Detects priority (P0/P1/P2/P3) from markers
+- Sets up blocking dependencies (P0 → P1 → P2)
+- Labels by user story and component
 
 ### 3. Link Beads IDs
 
 Update tasks.md with Beads issue IDs:
 
 ```bash
-.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature-name/tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature-name/tasks.md
 ```
 
 ### 4. Drive Implementation from Beads
 
 ```bash
-bd ready          # Show tasks ready to work on
+bd ready                        # Shows only unblocked P0 tasks initially
 bd update ID --status in-progress
-bd update ID --status done
+bd update ID --status done      # Unblocks dependent P1 tasks
+bd ready                        # Now shows P1 tasks
 ```
 
-**Why Beads?** Provides persistent memory across sessions, survives context limits, enables long-running AI-assisted projects.
+### Priority Levels (Pivotal-Aligned)
+
+| Priority | Description | Dependency |
+|----------|-------------|------------|
+| **P0** | Critical/Blocking | Can start immediately |
+| **P1** | MVP/Must-have | Blocked by P0 completion |
+| **P2** | Should-have | Blocked by P1 completion |
+| **P3** | Nice-to-have | Blocked by P2 completion |
+
+**Why Beads?** Provides persistent memory, Pivotal-style story tracking, automatic dependency management, and survives context limits.

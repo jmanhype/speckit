@@ -52,26 +52,55 @@ bd find "search term"        # Search tasks
 bd list --label "speckit:*"  # Find Spec Kit tasks
 ```
 
+## Pivotal-Style Workflow
+
+Spec Kit + Beads implements **Pivotal Labs methodology**:
+
+| Pivotal Concept | Beads Implementation |
+|-----------------|---------------------|
+| Story Types | `--type epic/task/bug` |
+| Story States | `--status todo/in-progress/done` |
+| Dependencies | `bd dep add` (P0 → P1 → P2) |
+| Acceptance Criteria | Epic description field |
+
 ## Sync Patterns
 
-### tasks.md → Beads
+### spec.md + plan.md → Beads Epic
 
-When tasks.md is generated, sync to Beads:
+After `/speckit.plan`, create a **Pivotal-style epic**:
 
-1. Create an epic for the feature:
-   ```bash
-   bd create "Feature: Payment Processing" --type epic --priority P1
-   ```
+```bash
+./.specify/scripts/bash/create-beads-epic.sh specs/001-feature P0
+```
 
-2. Bulk import tasks using the script:
-   ```bash
-   ./.specify/scripts/bash/create-beads-issues.sh specs/001-feature/tasks.md <epic-id>
-   ```
+This extracts from spec.md and plan.md:
+- Problem Statement
+- Business Value
+- Architectural Vision
+- Integration Tests
+- Acceptance Criteria
 
-3. Link Beads IDs back to tasks.md:
-   ```bash
-   ./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/001-feature/tasks.md
-   ```
+Epic ID is saved to `specs/001-feature/.beads-epic-id`
+
+### tasks.md → Beads Tasks
+
+After `/speckit.tasks`, bulk import with dependencies:
+
+```bash
+# Get epic ID
+EPIC_ID=$(cat specs/001-feature/.beads-epic-id)
+
+# Create tasks with automatic priority detection and P0→P1→P2 dependencies
+./.specify/scripts/bash/create-beads-issues.sh specs/001-feature/tasks.md $EPIC_ID
+
+# Link Beads IDs back to tasks.md
+./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/001-feature/tasks.md
+```
+
+The script automatically:
+- Detects P0/P1/P2/P3 priority from markers
+- Sets up blocking dependencies (P0 → P1 → P2)
+- Labels by user story and component
 
 ### Beads → tasks.md
 

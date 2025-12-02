@@ -13,6 +13,56 @@ Together they solve:
 - ✅ Dependency tracking that doesn't disappear
 - ✅ Work discovery and prioritization
 
+## Pivotal Methodology Alignment
+
+Spec Kit + Beads implements practices from **Pivotal Labs** (now VMware Tanzu Labs):
+
+| Pivotal Practice | Spec Kit + Beads Implementation |
+|-----------------|--------------------------------|
+| **TDD** | `test-gate.sh` enforces 100% test pass after every edit |
+| **User Stories** | spec.md with P1/P2/P3 priorities, `[US#]` references |
+| **Story Types** | Beads: `--type epic/task/bug`, labels for chores |
+| **Story States** | Beads: `--status todo/in-progress/done/blocked` |
+| **Acceptance Criteria** | spec.md `## Acceptance Criteria` → Beads epic description |
+| **IPM (Planning)** | `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` |
+| **Velocity** | Beads tracks task completion; `bd ready` shows unblocked work |
+| **Dependencies** | `bd dep add` creates blocking relationships (P0 → P1 → P2) |
+
+### Pivotal-Style Epic Format
+
+Beads epics created by Spec Kit include:
+
+```
+PROBLEM STATEMENT:
+[From spec.md ## Problem Statement]
+
+BUSINESS VALUE:
+[From spec.md ## Business Value]
+
+ARCHITECTURAL VISION:
+[From plan.md ## Architectural Vision]
+
+INTEGRATION TESTS:
+[From spec.md ## Integration Tests]
+
+Acceptance Criteria:
+[From spec.md ## Acceptance Criteria]
+
+Blocks (N):
+  ← TASK-1: P0 task description
+  ← TASK-2: P1 task description
+  ...
+```
+
+### Priority Levels (Pivotal-Aligned)
+
+| Priority | Pivotal Equivalent | Description |
+|----------|-------------------|-------------|
+| **P0** | Urgent/Blocker | Critical path, blocks everything else |
+| **P1** | High | MVP features, must-have |
+| **P2** | Medium | Should-have, important but not blocking |
+| **P3** | Low | Nice-to-have, future enhancements |
+
 ## Beads + Spec Kit Workflow
 
 ### General Rules
@@ -74,28 +124,25 @@ After generating `spec.md`:
 
 After generating `plan.md`:
 
-1. **Create epic issues for each major phase:**
+1. **Create a Pivotal-style epic** using the automated script:
    ```bash
-   bd create "[FEAT-001] Phase 1 – Backend API" \
-     -t epic \
-     -l speckit,feat-001 \
-     -d "Implements backend API endpoints per plan.md"
-
-   bd create "[FEAT-001] Phase 2 – UI Wiring" \
-     -t epic \
-     -l speckit,feat-001 \
-     -d "Connects UI to backend API"
+   ./.specify/scripts/bash/create-beads-epic.sh specs/###-feature-name P0
    ```
 
-2. **Store epic IDs back in `plan.md`:**
+   This extracts from spec.md and plan.md:
+   - Problem Statement
+   - Business Value
+   - Architectural Vision
+   - Integration Tests
+   - Acceptance Criteria
+
+   And creates a rich Beads epic with full description.
+
+2. **Epic ID is saved** to `specs/###-feature-name/.beads-epic-id`
+
+3. **Store epic ID in `plan.md`** header:
    ```markdown
-   ## Phase 1: Backend API (Beads: bd-a1b2)
-
-   ...architecture details...
-
-   ## Phase 2: UI Wiring (Beads: bd-c9d3)
-
-   ...implementation details...
+   **Beads Epic**: HEX-abc123
    ```
 
 ### During `/speckit.tasks` Phase
@@ -104,47 +151,42 @@ After generating `plan.md`:
 
 After `/speckit.tasks` generates `tasks.md`:
 
-1. **For each actionable task, create a Beads issue:**
+1. **Bulk create Beads issues with dependencies:**
    ```bash
-   # Epic already created in plan phase
+   # Get epic ID from plan phase
+   EPIC_ID=$(cat specs/###-feature-name/.beads-epic-id)
 
-   # Create task issues
-   bd create "[T001] Verify header contains Team link" \
-     -t task \
-     -l speckit,feat-001 \
-     --parent bd-epic-a1b2 \
-     -d "See tasks.md T001. File: src/templates/header.html:42"
-
-   bd create "[T002] Add GET /api/teams endpoint" \
-     -t task \
-     -l speckit,feat-001 \
-     --parent bd-epic-a1b2 \
-     -d "See tasks.md T002. File: src/api/teams.py"
+   # Create all tasks with automatic priority detection and dependencies
+   ./.specify/scripts/bash/create-beads-issues.sh specs/###-feature-name/tasks.md $EPIC_ID
    ```
 
-2. **Add Beads IDs back into `tasks.md`:**
+   This script automatically:
+   - Detects priority (P0/P1/P2/P3) from task markers or context
+   - Creates Beads issues under the epic
+   - Sets up dependencies (P0 → P1 → P2 → P3)
+   - Labels tasks by user story, backend/frontend, etc.
 
-   Transform this:
-   ```markdown
-   - [ ] T001 [P] Verify header template contains Team link
-   - [ ] T002 [P] Add GET /api/teams endpoint
-   ```
-
-   Into this:
-   ```markdown
-   - [ ] (bd-x1y2) T001 [P] Verify header template contains Team link
-   - [ ] (bd-x3y4) T002 [P] Add GET /api/teams endpoint
-   ```
-
-3. **Model dependencies in Beads:**
+2. **Link Beads IDs back to tasks.md:**
    ```bash
-   # If T002 depends on T001 completing
-   bd dep add bd-x3y4 bd-x1y2 --type blocks
+   ./.specify/scripts/bash/update-tasks-with-beads-ids.sh specs/###-feature-name/tasks.md
    ```
 
-   Then mention in `tasks.md`:
+   Transforms:
    ```markdown
-   - [ ] (bd-x3y4) T002 [P] Add GET /api/teams endpoint (blocked by bd-x1y2)
+   - [ ] T001 [P] [P0] Verify header template contains Team link
+   - [ ] T002 [P] [P1] Add GET /api/teams endpoint
+   ```
+
+   Into:
+   ```markdown
+   - [ ] (HEX-x1y2) T001 [P] [P0] Verify header template contains Team link
+   - [ ] (HEX-x3y4) T002 [P] [P1] Add GET /api/teams endpoint
+   ```
+
+3. **Verify dependencies:**
+   ```bash
+   bd show $EPIC_ID  # Shows "Blocks (N):" with all child tasks
+   bd ready          # Shows only P0 tasks initially (P1/P2/P3 are blocked)
    ```
 
 4. **Keep `tasks.md` lightweight:**
