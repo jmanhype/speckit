@@ -13,18 +13,32 @@ This repository provides a framework that can be integrated into any software pr
 ├── .claude/
 │   ├── settings.json          # Claude Code hooks (Beads integration)
 │   ├── README.md              # Configuration documentation
-│   └── commands/              # Slash command definitions for Claude Code
-│       ├── speckit.specify.md    # Create feature specifications
-│       ├── speckit.clarify.md    # Resolve ambiguities
-│       ├── speckit.plan.md       # Create technical plans
-│       ├── speckit.tasks.md      # Generate task lists
-│       ├── speckit.implement.md  # Execute implementation
-│       ├── speckit.analyze.md    # Cross-artifact validation
-│       ├── speckit.checklist.md  # Quality checklists
-│       ├── speckit.constitution.md   # Project principles
-│       ├── speckit.taskstoissues.md  # Convert tasks to GitHub issues
-│       ├── speckit-workflow-v2.md    # Full workflow orchestration
-│       └── speckit-orchestrate.md    # Quick workflow
+│   ├── commands/              # Slash command definitions for Claude Code
+│   │   ├── speckit.specify.md    # Create feature specifications
+│   │   ├── speckit.clarify.md    # Resolve ambiguities
+│   │   ├── speckit.plan.md       # Create technical plans
+│   │   ├── speckit.tasks.md      # Generate task lists
+│   │   ├── speckit.implement.md  # Execute implementation
+│   │   ├── speckit.analyze.md    # Cross-artifact validation
+│   │   ├── speckit.checklist.md  # Quality checklists
+│   │   ├── speckit.constitution.md   # Project principles
+│   │   ├── speckit.fix.md        # Quick fixes (bypasses full workflow)
+│   │   ├── speckit.taskstoissues.md  # Convert tasks to GitHub issues
+│   │   ├── speckit-workflow-v2.md    # Full workflow orchestration
+│   │   └── speckit-orchestrate.md    # Quick workflow
+│   ├── agents/                # Specialized sub-agent definitions
+│   │   ├── openapi-spec-author.md    # API design and contract validation
+│   │   ├── backend-api-engineer.md   # Backend TDD implementation
+│   │   ├── frontend-react-engineer.md # Frontend React/TypeScript
+│   │   ├── integration-tester.md     # E2E and integration testing
+│   │   ├── spec-validator.md         # Spec quality validation
+│   │   ├── consistency-checker.md    # Cross-artifact consistency
+│   │   └── beads-sync.md             # Beads synchronization
+│   └── skills/                # On-demand context skills
+│       ├── spec-kit-workflow/    # Workflow phase guidance
+│       ├── beads-integration/    # Persistent memory patterns
+│       ├── spec-validation/      # Spec quality validation
+│       └── project-standards/    # Constitution principles (on-demand)
 ├── .specify/
 │   ├── memory/
 │   │   └── constitution.md    # Template for project architectural principles
@@ -82,6 +96,105 @@ EPIC_ID=$(cat specs/001-feature/.beads-epic-id)
 # 6. Drive implementation from Beads
 bd ready  # Shows P0 tasks first, then P1 as P0 completes
 ```
+
+## Contract-Driven Development
+
+Spec Kit integrates with **Specmatic** for contract-driven development, enabling parallel frontend/backend implementation with API contracts as the source of truth.
+
+### MCP Integrations
+
+The `.mcp.json` configures three MCP servers:
+- **Linear**: Issue tracking and project management
+- **Specmatic**: Contract testing, backward compatibility, service virtualization
+- **Playwright**: E2E testing and browser automation
+
+### Backward Compatibility Gate
+
+Before any API changes are finalized:
+
+```bash
+# Validate OpenAPI changes don't break existing consumers
+specmatic backward-compatibility-check --target-path ./specs/<feature>/contracts/openapi.yaml
+```
+
+Rules:
+- Adding optional fields: ✅ ALLOWED
+- Adding new endpoints: ✅ ALLOWED
+- Removing endpoints/fields: ❌ BREAKING
+- Changing field types: ❌ BREAKING
+
+### Parallel Development Flow
+
+```
+Phase 1: API Design
+├── openapi-spec-author agent
+├── Specmatic backward-compatibility-check
+└── Gate: No breaking changes
+
+Phase 2: Parallel Implementation (Backend + Frontend simultaneously)
+├── backend-api-engineer
+│   └── Uses Specmatic for contract testing
+├── frontend-react-engineer
+│   └── Uses Specmatic stub server for mocking
+└── Both work from same OpenAPI contract
+
+Phase 3: Integration
+├── integration-tester agent
+├── Playwright for E2E tests
+└── Validates full flow
+```
+
+## Specialized Sub-Agents
+
+Spec Kit provides specialized agents for different implementation tracks:
+
+| Agent | Role | Tools |
+|-------|------|-------|
+| `openapi-spec-author` | API design, OpenAPI specs, backward compatibility | Specmatic MCP |
+| `backend-api-engineer` | Backend implementation, TDD, contract testing | Specmatic MCP |
+| `frontend-react-engineer` | React/TypeScript, accessibility, mock backends | Specmatic + Playwright MCP |
+| `integration-tester` | E2E testing, performance validation, smoke tests | Playwright MCP |
+
+### Using Sub-Agents
+
+Sub-agents are invoked during `/speckit.implement`:
+
+```bash
+# Standard implementation (sequential)
+/speckit.implement
+
+# Parallel implementation with sub-agents
+/speckit.implement --parallel
+```
+
+Each sub-agent:
+- Invokes the `project-standards` skill for constitution guidance
+- Updates Beads with progress (`bd update`, `bd note`)
+- Follows TDD (tests first, then implementation)
+- Validates against OpenAPI contract
+
+## Skills System
+
+Skills provide on-demand context without polluting the main context window:
+
+| Skill | Purpose | Auto-Invokes When |
+|-------|---------|-------------------|
+| `spec-kit-workflow` | Workflow phase guidance | Discussing features, planning |
+| `beads-integration` | Persistent memory patterns | Task tracking, session persistence |
+| `spec-validation` | Spec quality validation | Reviewing specs, before planning |
+| `project-standards` | Constitution principles | Writing code, making decisions |
+
+### Quick Fix Command
+
+For simple changes that don't need full workflow:
+
+```bash
+/speckit.fix Fix typo in README
+/speckit.fix Change button color from blue to green
+/speckit.fix Add missing import in UserProfile
+```
+
+This bypasses specify → plan → tasks → implement for trivial fixes while still respecting test gates and project standards.
 
 ## Working with This Repository
 
