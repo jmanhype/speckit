@@ -1,5 +1,14 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+description: "Execute the implementation plan by processing tasks from tasks.md. Usage: /speckit.implement [--parallel]"
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - mcp__specmatic__*
+  - mcp__playwright__*
 ---
 
 ## User Input
@@ -73,7 +82,104 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
-7. **Project Setup Verification**:
+7. **Execution Mode Selection**:
+
+   Check if `--parallel` flag is present in `$ARGUMENTS`:
+
+   ### A) Standard Mode (default)
+   - Execute tasks sequentially in main thread
+   - Follow standard task ordering from tasks.md
+   - Continue to step 8
+
+   ### B) Parallel Mode (`--parallel` flag)
+   - Use specialized sub-agents for contract-driven parallel development
+   - Enables backend and frontend to work simultaneously from OpenAPI contract
+
+   **Sub-Agent Orchestration Flow:**
+
+   ```
+   ┌─────────────────────────────────────────────────────────────────┐
+   │                    PARALLEL IMPLEMENTATION                       │
+   ├─────────────────────────────────────────────────────────────────┤
+   │                                                                 │
+   │  Phase 1: Contract Validation                                   │
+   │  └── openapi-spec-author agent                                  │
+   │      ├── Validates OpenAPI spec exists                          │
+   │      ├── Runs backward compatibility check (Specmatic)          │
+   │      └── Updates contracts if needed                            │
+   │                                                                 │
+   │  Phase 2: Parallel Implementation                               │
+   │  ├── backend-api-engineer ─────────┐                           │
+   │  │   ├── Uses Specmatic for        │                           │
+   │  │   │   contract testing          │  PARALLEL                 │
+   │  │   ├── Follows TDD               │  (same OpenAPI            │
+   │  │   └── Updates Beads             │   contract)               │
+   │  │                                 │                           │
+   │  └── frontend-react-engineer ──────┘                           │
+   │      ├── Uses Specmatic stub                                    │
+   │      │   server for mocking                                     │
+   │      ├── Follows TDD                                            │
+   │      └── Updates Beads                                          │
+   │                                                                 │
+   │  Phase 3: Integration Testing                                   │
+   │  └── integration-tester agent                                   │
+   │      ├── E2E tests with Playwright                              │
+   │      ├── Smoke tests                                            │
+   │      ├── Performance validation                                 │
+   │      └── Final Beads updates                                    │
+   │                                                                 │
+   └─────────────────────────────────────────────────────────────────┘
+   ```
+
+   **Sub-Agent Invocation:**
+
+   Use the Task tool to spawn each sub-agent:
+
+   ```
+   # Phase 1: API Contract Validation
+   Task(subagent_type="openapi-spec-author", prompt="Validate and finalize OpenAPI contracts...")
+
+   # Phase 2: Parallel Backend + Frontend (spawn together)
+   Task(subagent_type="backend-api-engineer", prompt="Implement backend tasks...")
+   Task(subagent_type="frontend-react-engineer", prompt="Implement frontend tasks...")
+
+   # Phase 3: Integration (after Phase 2 completes)
+   Task(subagent_type="integration-tester", prompt="Run E2E integration tests...")
+   ```
+
+   **Sub-Agent Task Assignment:**
+
+   | Agent | Tasks to Assign |
+   |-------|-----------------|
+   | `openapi-spec-author` | Tasks in contracts/, API design tasks |
+   | `backend-api-engineer` | Tasks with `backend/`, `api/`, `src/services/`, `src/models/` |
+   | `frontend-react-engineer` | Tasks with `frontend/`, `src/components/`, `src/pages/` |
+   | `integration-tester` | Tasks with `tests/e2e/`, `tests/integration/`, smoke tests |
+
+   **Beads Coordination:**
+
+   Each sub-agent updates Beads independently:
+   ```bash
+   # Before starting task
+   bd update <task-id> --status in-progress
+
+   # During implementation (discoveries)
+   bd note <task-id> "Found edge case: ..."
+
+   # After completing task
+   bd update <task-id> --status done
+   ```
+
+   **Contract as Source of Truth:**
+
+   - `specs/<feature>/contracts/openapi.yaml` is THE contract
+   - Backend implements TO the contract (Specmatic validates)
+   - Frontend mocks FROM the contract (Specmatic stub server)
+   - Integration verifies THROUGH the contract (E2E tests)
+
+   After parallel execution completes, continue to step 15 (Completion validation).
+
+8. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
    **Detection & Creation Logic**:
@@ -117,28 +223,28 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
    - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
 
-8. Parse tasks.md structure and extract:
+9. Parse tasks.md structure and extract:
    - **Task phases**: Setup, Tests, Core, Integration, Polish
    - **Task dependencies**: Sequential vs parallel execution rules
    - **Task details**: ID, description, file paths, parallel markers [P]
    - **Execution flow**: Order and dependency requirements
    - **Linear IDs**: Extract any `<!-- LINEAR:TEAM-XXX -->` markers
 
-9. Execute implementation following the task plan:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
+10. Execute implementation following the task plan:
+    - **Phase-by-phase execution**: Complete each phase before moving to the next
+    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
+    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
+    - **File-based coordination**: Tasks affecting the same files must run sequentially
+    - **Validation checkpoints**: Verify each phase completion before proceeding
 
-10. Implementation execution rules:
+11. Implementation execution rules:
     - **Setup first**: Initialize project structure, dependencies, configuration
     - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
     - **Core development**: Implement models, services, CLI commands, endpoints
     - **Integration work**: Database connections, middleware, logging, external services
     - **Polish and validation**: Unit tests, performance optimization, documentation
 
-11. Progress tracking and error handling:
+12. Progress tracking and error handling:
     - Report progress after each completed task
     - Halt execution if any non-parallel task fails
     - For parallel tasks [P], continue with successful tasks, report failed ones
@@ -146,7 +252,7 @@ You **MUST** consider the user input before proceeding (if not empty).
     - Suggest next steps if implementation cannot proceed
     - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-12. **TEST GATE (MANDATORY)** - After EACH task:
+13. **TEST GATE (MANDATORY)** - After EACH task:
 
     **Requirements**:
     - 100% unit tests passing
@@ -177,31 +283,54 @@ You **MUST** consider the user input before proceeding (if not empty).
     - ALL tests must pass at 100%
     - Coverage must meet threshold (default 100%)
 
-13. **Linear Sync** (if configured):
+14. **Linear Sync** (if configured):
     - After each task completion, if Linear mapping exists:
       - Update task status in tasks.md with `[x]`
       - Optionally sync to Linear (suggest `/speckit.linear.sync`)
     - At feature completion, push final status to Linear
 
-14. Completion validation:
+15. Completion validation:
     - Verify all required tasks are completed
     - Check that implemented features match the original specification
     - Validate that tests pass and coverage meets requirements
     - Confirm the implementation follows the technical plan
     - Report final status with summary of completed work
-    - Display final test gate status:
-      ```
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      ✅ IMPLEMENTATION COMPLETE
 
-         Tasks:       12/12 complete
-         Unit Tests:  ✓ 100% pass
-         Integration: ✓ 100% pass
-         Smoke Tests: ✓ 100% pass
-         Coverage:    ✓ 100%
+    **Standard Mode Display:**
+    ```
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ✅ IMPLEMENTATION COMPLETE
 
-         Linear: TEAM-123 (synced)
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      ```
+       Tasks:       12/12 complete
+       Unit Tests:  ✓ 100% pass
+       Integration: ✓ 100% pass
+       Smoke Tests: ✓ 100% pass
+       Coverage:    ✓ 100%
+
+       Linear: TEAM-123 (synced)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ```
+
+    **Parallel Mode Display (`--parallel`):**
+    ```
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ✅ PARALLEL IMPLEMENTATION COMPLETE
+
+       Sub-Agents:
+       ├── openapi-spec-author:     ✓ Contract validated
+       ├── backend-api-engineer:    ✓ 6/6 tasks complete
+       ├── frontend-react-engineer: ✓ 5/5 tasks complete
+       └── integration-tester:      ✓ E2E passed
+
+       Contract:    ✓ Backward compatible
+       Unit Tests:  ✓ 100% pass (backend + frontend)
+       Integration: ✓ 100% pass
+       E2E Tests:   ✓ 100% pass
+       Coverage:    ✓ 100%
+
+       Beads: All tasks synced
+       Linear: TEAM-123 (synced)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ```
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
