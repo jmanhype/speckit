@@ -6,6 +6,18 @@
       "env": {
         "LINEAR_API_KEY": "${LINEAR_API_KEY}"
       }
+    },
+    "specmatic": {
+      "command": "npx",
+      "args": ["-y", "@specmatic/mcp"],
+      "env": {
+        "SPECMATIC_CENTRAL_REPO_URL": "${SPECMATIC_CENTRAL_REPO_URL}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-playwright"],
+      "env": {}
     }
   }
 }
